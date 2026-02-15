@@ -131,6 +131,15 @@ def calculate_performance(build: Build) -> PerformanceReport:
         If critical components (motor, battery) are missing from the build.
     """
 
+    # Guard: fixed-wing and VTOL perf calcs are not yet supported
+    _NON_QUAD_CLASSES = {"flying_wing", "vtol"}
+    if build.drone_class in _NON_QUAD_CLASSES:
+        raise ValueError(
+            f"Performance calculation for '{build.drone_class}' builds is not yet supported. "
+            f"Fixed-wing and VTOL performance modeling requires different aerodynamic equations "
+            f"(lift/drag curves, wing loading) — this is planned for a future release."
+        )
+
     motor = build.get_component("motor")
     battery = build.get_component("battery")
     propeller = build.get_component("propeller")

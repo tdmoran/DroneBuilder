@@ -26,7 +26,7 @@ from engines.optimizer import optimize, suggest_quick, OptimizationRequest
 # Helpers
 # ---------------------------------------------------------------------------
 
-VALID_TYPES = ["motor", "esc", "fc", "frame", "propeller", "battery", "vtx", "receiver"]
+VALID_TYPES = ["motor", "esc", "fc", "frame", "propeller", "battery", "vtx", "receiver", "servo", "airframe"]
 
 
 def _truncate(text: str, width: int) -> str:
@@ -351,6 +351,10 @@ def suggest_builds(drone_class: str, budget: float, priority: dict):
 # ---------------------------------------------------------------------------
 
 def main():
+    # Register fleet commands
+    from cli.fleet import fleet_group
+    cli.add_command(fleet_group)
+
     cli()
 
 

@@ -9,6 +9,7 @@ from typing import Any
 
 import yaml
 
+from core.layouts import get_motor_count
 from core.models import Build, Component, Constraint, Severity
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -26,6 +27,8 @@ _FILE_TO_TYPE = {
     "batteries.json": "battery",
     "vtx.json": "vtx",
     "receivers.json": "receiver",
+    "servos.json": "servo",
+    "airframes.json": "airframe",
 }
 
 
@@ -157,24 +160,41 @@ def load_build(build_data: dict[str, Any]) -> Build:
     """
     all_comps = load_all_components_by_id()
     build_components: dict[str, Component | list[Component]] = {}
+    drone_class = build_data.get("drone_class", "unknown")
+    motor_count = get_motor_count(drone_class)
+
+    # Keys that are metadata, not component references
+    _METADATA_KEYS = {
+        "name", "drone_class", "status", "nickname", "notes",
+        "acquired_date", "tags", "component_status", "source_file",
+    }
 
     for key, value in build_data.items():
-        if key in ("name", "drone_class", "notes"):
+        if key in _METADATA_KEYS:
             continue
         if key == "motor":
             if isinstance(value, str):
                 comp = all_comps.get(value)
                 if comp:
-                    build_components["motor"] = [comp] * 4
+                    build_components["motor"] = [comp] * motor_count
             elif isinstance(value, list):
                 motors = [all_comps[mid] for mid in value if mid in all_comps]
                 build_components["motor"] = motors
+        elif key == "servo":
+            if isinstance(value, str):
+                comp = all_comps.get(value)
+                if comp:
+                    build_components["servo"] = [comp]
+            elif isinstance(value, list):
+                servos = [all_comps[sid] for sid in value if isinstance(sid, str) and sid in all_comps]
+                if servos:
+                    build_components["servo"] = servos
         else:
             if isinstance(value, str) and value in all_comps:
                 build_components[key] = all_comps[value]
 
     return Build(
         name=build_data.get("name", "Unnamed Build"),
-        drone_class=build_data.get("drone_class", "unknown"),
+        drone_class=drone_class,
         components=build_components,
     )

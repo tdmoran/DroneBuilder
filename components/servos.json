@@ -1,0 +1,87 @@
+[
+  {
+    "id": "servo_emax_es08a",
+    "manufacturer": "Emax",
+    "model": "ES08A Analog Micro Servo",
+    "weight_g": 8.5,
+    "price_usd": 4.50,
+    "category": "micro",
+    "specs": {
+      "torque_kg_cm": 1.5,
+      "speed_sec_60deg": 0.12,
+      "voltage_range": "4.8V-6.0V",
+      "gear_material": "plastic",
+      "bearing_type": "bushing",
+      "connector": "JR",
+      "pwm_range_us": "500-2500"
+    }
+  },
+  {
+    "id": "servo_emax_es08md",
+    "manufacturer": "Emax",
+    "model": "ES08MD Metal Gear Digital Micro Servo",
+    "weight_g": 12.0,
+    "price_usd": 7.00,
+    "category": "micro",
+    "specs": {
+      "torque_kg_cm": 2.0,
+      "speed_sec_60deg": 0.10,
+      "voltage_range": "4.8V-6.0V",
+      "gear_material": "metal",
+      "bearing_type": "dual_ball_bearing",
+      "connector": "JR",
+      "pwm_range_us": "500-2500"
+    }
+  },
+  {
+    "id": "servo_savox_sh0257mg",
+    "manufacturer": "Savox",
+    "model": "SH-0257MG Micro Digital Servo",
+    "weight_g": 14.0,
+    "price_usd": 16.00,
+    "category": "micro",
+    "specs": {
+      "torque_kg_cm": 2.2,
+      "speed_sec_60deg": 0.09,
+      "voltage_range": "4.8V-6.0V",
+      "gear_material": "metal",
+      "bearing_type": "dual_ball_bearing",
+      "connector": "JR",
+      "pwm_range_us": "500-2500"
+    }
+  },
+  {
+    "id": "servo_towerpro_sg90",
+    "manufacturer": "TowerPro",
+    "model": "SG90 Micro Servo",
+    "weight_g": 9.0,
+    "price_usd": 2.50,
+    "category": "micro",
+    "specs": {
+      "torque_kg_cm": 1.8,
+      "speed_sec_60deg": 0.12,
+      "voltage_range": "4.8V-6.0V",
+      "gear_material": "plastic",
+      "bearing_type": "bushing",
+      "connector": "JR",
+      "pwm_range_us": "500-2500"
+    }
+  },
+  {
+    "id": "servo_bluebird_bms101",
+    "manufacturer": "Blue Bird",
+    "model": "BMS-101 Micro Servo",
+    "weight_g": 4.4,
+    "price_usd": 8.00,
+    "category": "micro",
+    "specs": {
+      "torque_kg_cm": 0.6,
+      "speed_sec_60deg": 0.07,
+      "voltage_range": "3.7V-6.0V",
+      "gear_material": "plastic",
+      "bearing_type": "bushing",
+      "connector": "JR",
+      "pwm_range_us": "500-2500"
+    }
+  }
+]

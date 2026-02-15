@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dronebuilder.local/schemas/airframe.schema.json",
+  "title": "FPV Drone Airframe",
+  "description": "Schema for a fixed-wing or VTOL airframe body (fuselage + wing), distinct from quad frames.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the airframe.",
+      "minLength": 1
+    },
+    "manufacturer": {
+      "type": "string",
+      "description": "Name of the airframe manufacturer (e.g., TBS, ZOHD, SonicModell).",
+      "minLength": 1
+    },
+    "model": {
+      "type": "string",
+      "description": "Model name of the airframe.",
+      "minLength": 1
+    },
+    "weight_g": {
+      "type": "number",
+      "description": "Weight of the bare airframe in grams (no electronics).",
+      "minimum": 10,
+      "maximum": 10000
+    },
+    "price_usd": {
+      "type": "number",
+      "description": "Price in US dollars.",
+      "minimum": 0
+    },
+    "category": {
+      "type": "string",
+      "description": "Airframe type classification.",
+      "enum": ["flying_wing", "vtol", "conventional"]
+    },
+    "specs": {
+      "type": "object",
+      "properties": {
+        "wingspan_mm": {
+          "type": "number",
+          "description": "Total wingspan in millimeters."
+        },
+        "wing_area_dm2": {
+          "type": "number",
+          "description": "Wing area in square decimeters."
+        },
+        "material": {
+          "type": "string",
+          "description": "Primary construction material.",
+          "enum": ["epp_foam", "epo_foam", "depron", "carbon_composite", "balsa"]
+        },
+        "motor_mount": {
+          "type": "string",
+          "description": "Motor mounting style.",
+          "enum": ["pusher", "tractor", "dual_pusher"]
+        },
+        "servo_count": {
+          "type": "integer",
+          "description": "Number of servos required for control surfaces.",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "recommended_auw_g": {
+          "type": "number",
+          "description": "Manufacturer recommended all-up weight in grams."
+        },
+        "recommended_motor_kv_range": {
+          "type": "string",
+          "description": "Recommended motor KV range (e.g., '800-1200')."
+        },
+        "prop_size_range": {
+          "type": "string",
+          "description": "Recommended propeller size range (e.g., '5x5 to 6x4')."
+        }
+      }
+    },
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Product page URL."
+    }
+  },
+  "required": [
+    "id",
+    "manufacturer",
+    "model",
+    "weight_g",
+    "price_usd",
+    "category",
+    "specs"
+  ],
+  "additionalProperties": false
+}

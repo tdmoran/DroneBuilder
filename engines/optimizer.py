@@ -410,6 +410,11 @@ def optimize(request: OptimizationRequest) -> list[BuildSuggestion]:
     e. Run constraints on top candidates; filter out critical failures
     f. Return top 5, sorted by score descending
     """
+    # Guard: optimizer only supports quad classes currently
+    _NON_QUAD_CLASSES = {"flying_wing", "vtol"}
+    if request.drone_class in _NON_QUAD_CLASSES:
+        return []
+
     all_components = load_components()
     pool = _filter_by_category(all_components, request.drone_class)
 
