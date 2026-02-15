@@ -12,6 +12,8 @@ serial_bp = Blueprint("serial", __name__)
 # SocketIO instance — set by init_serial_socketio() from app.py
 _socketio = None
 _reader_threads: dict[str, threading.Thread] = {}
+_reader_paused: threading.Event = threading.Event()  # clear = paused, set = running
+_reader_paused.set()  # start in running state
 
 
 def init_serial_socketio(socketio) -> None:
@@ -44,6 +46,18 @@ def init_serial_socketio(socketio) -> None:
         )
 
 
+def pause_reader() -> None:
+    """Pause the serial reader thread so another route can use the connection."""
+    _reader_paused.clear()
+    import time
+    time.sleep(0.1)  # let the reader loop finish its current iteration
+
+
+def resume_reader() -> None:
+    """Resume the serial reader thread after exclusive access is done."""
+    _reader_paused.set()
+
+
 def _start_reader_thread(port: str) -> None:
     """Start a background thread that reads serial and emits to SocketIO."""
     if port in _reader_threads and _reader_threads[port].is_alive():
@@ -53,6 +67,9 @@ def _start_reader_thread(port: str) -> None:
         from fc_serial.connection import get_connection
 
         while True:
+            # When paused (e.g. diagnose route reading config), wait
+            _reader_paused.wait()
+
             conn = get_connection(port)
             if not conn or not conn.is_open:
                 break
@@ -175,6 +192,7 @@ def read_diff_all():
     if not conn:
         return jsonify({"error": "Connection lost"}), 500
 
+    pause_reader()
     try:
         enter_cli_mode(conn)
         raw = get_diff_all(conn)
@@ -193,6 +211,8 @@ def read_diff_all():
         })
     except Exception as exc:
         return jsonify({"error": f"Failed to read config: {exc}"}), 500
+    finally:
+        resume_reader()
 
 
 @serial_bp.route("/upload-diff", methods=["POST"])

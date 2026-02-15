@@ -57,6 +57,7 @@ def read_config():
     """Connect to FC, read diff all, parse, return JSON summary."""
     from fc_serial.cli_mode import enter_cli_mode, exit_cli_mode, get_diff_all
     from fc_serial.connection import get_active_port, get_connection
+    from web.routes.serial import pause_reader, resume_reader
 
     port = get_active_port()
     if not port:
@@ -68,6 +69,8 @@ def read_config():
 
     drone_filename = request.form.get("drone_filename", "")
 
+    # Pause the terminal reader thread so we get exclusive serial access
+    pause_reader()
     try:
         enter_cli_mode(conn)
         raw = get_diff_all(conn)
@@ -90,6 +93,8 @@ def read_config():
         })
     except Exception as exc:
         return jsonify({"error": f"Failed to read config: {exc}"}), 500
+    finally:
+        resume_reader()
 
 
 @diagnose_bp.route("/upload-config", methods=["POST"])
