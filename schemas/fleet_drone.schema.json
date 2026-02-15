@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dronebuilder.local/schemas/fleet_drone.schema.json",
+  "title": "Fleet Drone",
+  "description": "Schema for a drone in the user's personal fleet. Components can be database IDs (strings) or inline custom component objects with _custom: true.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Display name for this drone.",
+      "minLength": 1
+    },
+    "drone_class": {
+      "type": "string",
+      "description": "Classification of the drone.",
+      "enum": [
+        "5inch_freestyle",
+        "5inch_race",
+        "3inch",
+        "whoop",
+        "7inch_lr",
+        "flying_wing",
+        "vtol"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "description": "Current operational status of the drone.",
+      "enum": ["active", "building", "retired", "crashed", "sold"],
+      "default": "active"
+    },
+    "nickname": {
+      "type": "string",
+      "description": "Optional short nickname."
+    },
+    "notes": {
+      "type": "string",
+      "description": "Free-text notes about this drone."
+    },
+    "acquired_date": {
+      "type": "string",
+      "description": "Date the drone was built or acquired (YYYY-MM-DD)."
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "User-defined tags for filtering."
+    },
+    "motor": {
+      "description": "Motor component: a database ID string, or an inline custom component object.",
+      "oneOf": [
+        { "type": "string" },
+        { "type": "object" }
+      ]
+    },
+    "esc": {
+      "description": "ESC component.",
+      "oneOf": [
+        { "type": "string" },
+        { "type": "object" }
+      ]
+    },
+    "fc": {
+      "description": "Flight controller component.",
+      "oneOf": [
+        { "type": "string" },
+        { "type": "object" }
+      ]
+    },
+    "frame": {
+      "description": "Quad frame component (for quad classes).",
+      "oneOf": [
+        { "type": "string" },
+        { "type": "object" }
+      ]
+    },
+    "airframe": {
+      "description": "Airframe component (for flying_wing and vtol classes).",
+      "oneOf": [
+        { "type": "string" },
+        { "type": "object" }
+      ]
+    },
+    "propeller": {
+      "description": "Propeller component.",
+      "oneOf": [
+        { "type": "string" },
+        { "type": "object" }
+      ]
+    },
+    "battery": {
+      "description": "Battery component.",
+      "oneOf": [
+        { "type": "string" },
+        { "type": "object" }
+      ]
+    },
+    "vtx": {
+      "description": "Video transmitter component.",
+      "oneOf": [
+        { "type": "string" },
+        { "type": "object" }
+      ]
+    },
+    "receiver": {
+      "description": "Radio receiver component.",
+      "oneOf": [
+        { "type": "string" },
+        { "type": "object" }
+      ]
+    },
+    "servo": {
+      "description": "Servo(s): a single ID string, a list of ID strings, or inline custom objects.",
+      "oneOf": [
+        { "type": "string" },
+        { "type": "array", "items": { "oneOf": [{ "type": "string" }, { "type": "object" }] } },
+        { "type": "object" }
+      ]
+    },
+    "component_status": {
+      "type": "object",
+      "description": "Per-component status tracking (e.g., {\"motor\": \"good\", \"esc\": \"needs_replacement\"}).",
+      "additionalProperties": { "type": "string" }
+    }
+  },
+  "required": ["name", "drone_class"],
+  "additionalProperties": false
+}

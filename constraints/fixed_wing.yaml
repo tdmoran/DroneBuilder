@@ -1,0 +1,53 @@
+category: fixed_wing
+description: >
+  Basic compatibility constraints for fixed-wing (flying wing) and VTOL builds.
+  These supplement the shared electrical and protocol rules.
+
+rules:
+  - id: fw_001
+    name: Motor KV appropriate for fixed-wing airframe
+    description: >
+      Fixed-wing pusher motors should generally be lower KV than typical quad
+      motors. KV above 2500 on a wing is unusual and likely a component mismatch.
+    category: fixed_wing
+    severity: warning
+    components: [motor]
+    check:
+      operator: lte
+      field_a: motor.kv
+      field_b: 2500
+    message_template: >
+      Motor KV ({field_a}) is unusually high for a fixed-wing build.
+      Most wings use 800-2000KV motors. Verify this is intentional.
+
+  - id: fw_002
+    name: Servo present for flying wing control surfaces
+    description: >
+      Flying wings require at least 2 servos for elevon mixing.
+      A build with zero servos cannot fly.
+    category: fixed_wing
+    severity: critical
+    components: [servo]
+    check:
+      operator: gte
+      field_a: build.servo_count
+      field_b: 2
+    message_template: >
+      Flying wing requires at least 2 servos for elevon control,
+      but build has {field_a} servo(s).
+
+  - id: fw_003
+    name: Battery cell count within motor voltage range
+    description: >
+      The battery cell count must fall within the motor's supported
+      voltage range, same as for quads.
+    category: fixed_wing
+    severity: critical
+    components: [motor, battery]
+    check:
+      operator: lte
+      field_a: battery.cell_count
+      field_b: motor.voltage_max_s
+    message_template: >
+      Battery is {field_a}S but motor maximum is {field_b}S.
+      This will exceed the motor's voltage rating.

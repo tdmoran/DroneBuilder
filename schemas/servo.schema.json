@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dronebuilder.local/schemas/servo.schema.json",
+  "title": "FPV Drone Servo",
+  "description": "Schema for a micro servo used in fixed-wing and VTOL FPV drones for control surface actuation.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the servo.",
+      "minLength": 1
+    },
+    "manufacturer": {
+      "type": "string",
+      "description": "Name of the servo manufacturer (e.g., Emax, Savox, TowerPro).",
+      "minLength": 1
+    },
+    "model": {
+      "type": "string",
+      "description": "Model name or number of the servo.",
+      "minLength": 1
+    },
+    "weight_g": {
+      "type": "number",
+      "description": "Weight of the servo in grams including horn and mounting hardware.",
+      "minimum": 1,
+      "maximum": 200
+    },
+    "price_usd": {
+      "type": "number",
+      "description": "Price in US dollars for a single servo.",
+      "minimum": 0
+    },
+    "category": {
+      "type": "string",
+      "description": "Servo size category.",
+      "enum": ["micro", "mini", "standard"]
+    },
+    "specs": {
+      "type": "object",
+      "properties": {
+        "torque_kg_cm": {
+          "type": "number",
+          "description": "Maximum torque output in kg-cm."
+        },
+        "speed_sec_60deg": {
+          "type": "number",
+          "description": "Transit time for 60 degrees of rotation in seconds."
+        },
+        "voltage_range": {
+          "type": "string",
+          "description": "Operating voltage range (e.g., '4.8V-6.0V')."
+        },
+        "gear_material": {
+          "type": "string",
+          "description": "Gear train material.",
+          "enum": ["plastic", "metal", "titanium"]
+        },
+        "bearing_type": {
+          "type": "string",
+          "description": "Bearing type.",
+          "enum": ["bushing", "ball_bearing", "dual_ball_bearing"]
+        },
+        "connector": {
+          "type": "string",
+          "description": "Connector type for signal/power.",
+          "enum": ["JR", "JST"]
+        },
+        "pwm_range_us": {
+          "type": "string",
+          "description": "PWM pulse width range in microseconds (e.g., '500-2500')."
+        }
+      }
+    },
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Product page URL."
+    }
+  },
+  "required": [
+    "id",
+    "manufacturer",
+    "model",
+    "weight_g",
+    "price_usd",
+    "category",
+    "specs"
+  ],
+  "additionalProperties": false
+}

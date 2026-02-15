@@ -63,6 +63,8 @@ def _resolve_build_field(field_name: str, build: Build) -> Any:
         return build.dry_weight_g
     if field_name == "motor_count":
         return build.motor_count
+    if field_name == "servo_count":
+        return build.servo_count
     if field_name == "total_price_usd":
         return build.total_price_usd
     return None

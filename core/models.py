@@ -38,9 +38,18 @@ class Build:
     """A complete drone build — a set of components plus computed aggregates."""
 
     name: str
-    drone_class: str  # sub250, 5inch_freestyle, 5inch_race, 7inch_lr, etc.
+    drone_class: str  # sub250, 5inch_freestyle, 5inch_race, 7inch_lr, flying_wing, vtol, etc.
     components: dict[str, Component | list[Component]] = field(default_factory=dict)
-    # motor is a list of 4, everything else is a single Component
+    # motor is a list (4 for quads, 1 for wings, 5 for vtol), servo is a list, rest are single Component
+
+    # Fleet management fields (all have defaults for backwards compatibility)
+    status: str = "active"  # active, building, retired, crashed, sold
+    nickname: str = ""
+    notes: str = ""
+    tags: list[str] = field(default_factory=list)
+    acquired_date: str = ""
+    component_status: dict[str, str] = field(default_factory=dict)
+    source_file: str = ""
 
     @property
     def motor(self) -> Component | None:
@@ -57,6 +66,15 @@ class Build:
     @property
     def motor_count(self) -> int:
         return len(self.motors)
+
+    @property
+    def servos(self) -> list[Component]:
+        s = self.components.get("servo", [])
+        return s if isinstance(s, list) else [s]
+
+    @property
+    def servo_count(self) -> int:
+        return len(self.servos)
 
     def get_component(self, comp_type: str) -> Component | None:
         c = self.components.get(comp_type)

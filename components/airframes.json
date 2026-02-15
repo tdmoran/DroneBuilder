@@ -1,0 +1,70 @@
+[
+  {
+    "id": "airframe_tbs_chupito",
+    "manufacturer": "TBS",
+    "model": "Chupito",
+    "weight_g": 180.0,
+    "price_usd": 89.00,
+    "category": "flying_wing",
+    "specs": {
+      "wingspan_mm": 800,
+      "material": "epp_foam",
+      "motor_mount": "pusher",
+      "servo_count": 2,
+      "recommended_auw_g": 600,
+      "recommended_motor_kv_range": "800-1200",
+      "prop_size_range": "5x5 to 6x4"
+    }
+  },
+  {
+    "id": "airframe_zohd_dart_xl",
+    "manufacturer": "ZOHD",
+    "model": "Dart XL Extreme",
+    "weight_g": 368.0,
+    "price_usd": 65.00,
+    "category": "flying_wing",
+    "specs": {
+      "wingspan_mm": 1000,
+      "material": "epo_foam",
+      "motor_mount": "pusher",
+      "servo_count": 2,
+      "recommended_auw_g": 900,
+      "recommended_motor_kv_range": "900-1400",
+      "prop_size_range": "6x4 to 7x5"
+    }
+  },
+  {
+    "id": "airframe_sonicmodell_ar_wing_pro",
+    "manufacturer": "SonicModell",
+    "model": "AR Wing Pro",
+    "weight_g": 500.0,
+    "price_usd": 75.00,
+    "category": "flying_wing",
+    "specs": {
+      "wingspan_mm": 1000,
+      "material": "epo_foam",
+      "motor_mount": "pusher",
+      "servo_count": 2,
+      "recommended_auw_g": 1100,
+      "recommended_motor_kv_range": "1000-1500",
+      "prop_size_range": "6x4 to 8x6"
+    }
+  },
+  {
+    "id": "airframe_zohd_dart_250g",
+    "manufacturer": "ZOHD",
+    "model": "Dart 250G",
+    "weight_g": 108.0,
+    "price_usd": 45.00,
+    "category": "flying_wing",
+    "specs": {
+      "wingspan_mm": 635,
+      "material": "epp_foam",
+      "motor_mount": "pusher",
+      "servo_count": 2,
+      "recommended_auw_g": 250,
+      "recommended_motor_kv_range": "1400-2000",
+      "prop_size_range": "4x4 to 5x3"
+    }
+  }
+]
