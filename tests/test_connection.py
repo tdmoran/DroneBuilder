@@ -39,25 +39,76 @@ class TestDetectFCPorts:
         assert ports[0].vid == 0x0483
 
     @patch("serial.tools.list_ports.comports")
-    def test_ignores_unknown_devices(self, mock_comports):
+    def test_unknown_usb_device_included(self, mock_comports):
         mock_port = MagicMock()
         mock_port.device = "/dev/ttyUSB0"
+        mock_port.description = "USB Serial"
         mock_port.vid = 0x1234
         mock_port.pid = 0x5678
+        mock_port.serial_number = ""
+        mock_port.manufacturer = ""
         mock_comports.return_value = [mock_port]
+
+        ports = detect_fc_ports()
+        assert len(ports) == 1
+        assert ports[0].device == "/dev/ttyUSB0"
+
+    @patch("serial.tools.list_ports.comports")
+    def test_known_ports_listed_before_unknown(self, mock_comports):
+        stm32 = MagicMock()
+        stm32.device = "/dev/ttyACM0"
+        stm32.description = "STM32 VCP"
+        stm32.vid = 0x0483
+        stm32.pid = 0x5740
+        stm32.serial_number = ""
+        stm32.manufacturer = ""
+
+        unknown = MagicMock()
+        unknown.device = "/dev/ttyUSB0"
+        unknown.description = "Unknown USB"
+        unknown.vid = 0x9999
+        unknown.pid = 0x0001
+        unknown.serial_number = ""
+        unknown.manufacturer = ""
+
+        mock_comports.return_value = [unknown, stm32]
+
+        ports = detect_fc_ports()
+        assert len(ports) == 2
+        assert ports[0].device == "/dev/ttyACM0"  # Known FC first
+        assert ports[1].device == "/dev/ttyUSB0"   # Unknown USB second
+
+    @patch("serial.tools.list_ports.comports")
+    def test_skips_macos_builtin_ports(self, mock_comports):
+        bt = MagicMock()
+        bt.device = "/dev/cu.Bluetooth-Incoming-Port"
+        bt.vid = None
+        bt.pid = None
+
+        debug = MagicMock()
+        debug.device = "/dev/cu.debug-console"
+        debug.vid = None
+        debug.pid = None
+
+        mock_comports.return_value = [bt, debug]
 
         ports = detect_fc_ports()
         assert len(ports) == 0
 
     @patch("serial.tools.list_ports.comports")
-    def test_handles_none_vid_pid(self, mock_comports):
+    def test_usb_path_without_vid_pid(self, mock_comports):
         mock_port = MagicMock()
+        mock_port.device = "/dev/ttyUSB0"
+        mock_port.description = "USB Serial"
         mock_port.vid = None
         mock_port.pid = None
+        mock_port.serial_number = ""
+        mock_port.manufacturer = ""
         mock_comports.return_value = [mock_port]
 
         ports = detect_fc_ports()
-        assert len(ports) == 0
+        assert len(ports) == 1
+        assert ports[0].vid == 0
 
 
 class TestFCConnection:
