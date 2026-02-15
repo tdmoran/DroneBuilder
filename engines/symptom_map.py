@@ -10,16 +10,20 @@ from core.models import Discrepancy, Severity, ValidationResult
 # ---------------------------------------------------------------------------
 
 SYMPTOMS: dict[str, str] = {
+    "cant_arm": "Will not arm",
     "motors_wont_spin": "Motors won't spin / ESC not initializing",
-    "flips_on_takeoff": "Drone flips on takeoff",
+    "flips_on_takeoff": "Flips on takeoff",
     "no_video": "No video / OSD not showing",
-    "cant_arm": "Can't arm",
     "no_receiver": "No receiver signal",
+    "low_range": "Low range / signal drops",
     "gps_not_working": "GPS not working",
+    "rth_not_working": "Return to home not working",
     "bad_vibrations": "Bad vibrations / oscillations",
     "short_flight_time": "Short flight time",
     "failsafe_issues": "Failsafe not working correctly",
     "vtx_not_changing": "VTX not changing channels/power",
+    "compass_drift": "Compass / heading drift",
+    "altitude_hold_issues": "Altitude hold not working",
 }
 
 
@@ -28,16 +32,20 @@ SYMPTOMS: dict[str, str] = {
 # ---------------------------------------------------------------------------
 
 SYMPTOM_CHECKS: dict[str, list[str]] = {
+    "cant_arm": ["disc_002", "fw_005", "fw_018"],
     "motors_wont_spin": ["disc_004", "disc_005", "fw_001", "fw_002", "elec_001", "elec_002"],
     "flips_on_takeoff": ["disc_010", "fw_001", "disc_004"],
     "no_video": ["disc_003", "fw_007", "fw_008", "fw_015"],
-    "cant_arm": ["disc_002", "fw_005", "fw_018"],
     "no_receiver": ["disc_002", "fw_004", "fw_005", "fw_006"],
+    "low_range": ["disc_002", "fw_004", "fw_005", "fw_016"],
     "gps_not_working": ["disc_008", "fw_018"],
+    "rth_not_working": ["disc_008", "fw_018", "fw_019"],
     "bad_vibrations": ["fw_012", "fw_013", "fw_014"],
     "short_flight_time": ["disc_006", "fw_010", "fw_011", "elec_005"],
     "failsafe_issues": ["disc_002", "fw_004", "fw_005", "fw_016"],
     "vtx_not_changing": ["disc_003", "fw_007", "fw_008", "fw_009"],
+    "compass_drift": ["disc_008", "fw_018"],
+    "altitude_hold_issues": ["disc_008", "fw_018", "fw_019"],
 }
 
 

@@ -3,7 +3,7 @@
 
 {% block content %}
 <h1>FC Diagnostic</h1>
-<p>Select a drone, describe symptoms, load the FC config, and run diagnostics.</p>
+<p>Select a drone, load the FC config, pick the issue, and the system finds the fault.</p>
 
 <form id="diagnose-form">
   {# Step 1: Select drone #}
@@ -21,22 +21,9 @@
     </select>
   </article>
 
-  {# Step 2: Symptoms (optional) #}
+  {# Step 2: FC Config #}
   <article>
-    <header><strong>2. What's wrong?</strong> <small>(optional — helps prioritize results)</small></header>
-    <div class="symptom-grid">
-      {% for key, label in symptoms.items() %}
-      <label class="symptom-checkbox">
-        <input type="checkbox" name="symptoms" value="{{ key }}">
-        {{ label }}
-      </label>
-      {% endfor %}
-    </div>
-  </article>
-
-  {# Step 3: FC Config #}
-  <article>
-    <header><strong>3. FC Config</strong></header>
+    <header><strong>2. FC Config</strong></header>
     <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
       <button type="button" id="btn-read-fc"
         hx-post="/diagnose/read-config"
@@ -75,15 +62,27 @@
   {# Hidden field for raw_text state (populated by JS after config load) #}
   <input type="hidden" name="config_loaded" id="config-loaded" value="">
 
-  {# Step 4: Run scan #}
-  <button type="button" id="btn-scan" disabled
-    hx-post="/diagnose/scan"
-    hx-include="#diagnose-form"
-    hx-target="#discrepancy-results"
-    hx-indicator="#scan-spinner">
-    Run Diagnostic Scan
-  </button>
-  <span id="scan-spinner" class="htmx-indicator" aria-busy="true">Scanning for discrepancies...</span>
+  {# Step 3: Issue selector — hidden until config loads #}
+  <article id="issue-section" style="display: none;">
+    <header><strong>3. What's the issue?</strong></header>
+    <select name="symptoms" id="issue-select">
+      <option value="">-- Select a common issue --</option>
+      {% for key, label in symptoms.items() %}
+      <option value="{{ key }}">{{ label }}</option>
+      {% endfor %}
+    </select>
+    <small style="color: var(--pico-muted-color);">Select an issue to auto-diagnose, or leave blank and hit "Run Full Diagnostic" to check everything.</small>
+    <div style="margin-top: 1rem;">
+      <button type="button" id="btn-scan"
+        hx-post="/diagnose/scan"
+        hx-include="#diagnose-form"
+        hx-target="#discrepancy-results"
+        hx-indicator="#scan-spinner">
+        Run Full Diagnostic
+      </button>
+      <span id="scan-spinner" class="htmx-indicator" aria-busy="true">Scanning...</span>
+    </div>
+  </article>
 </form>
 
 {# Results areas (swapped by htmx) #}
@@ -96,7 +95,7 @@ function toggleUpload() {
   area.style.display = area.style.display === 'none' ? 'block' : 'none';
 }
 
-// After config loads successfully, enable the scan button and store raw_text
+// After config loads successfully, show issue selector and store raw_text
 document.body.addEventListener('htmx:afterRequest', function(evt) {
   if (evt.detail.target && evt.detail.target.id === 'config-status') {
     try {
@@ -104,8 +103,8 @@ document.body.addEventListener('htmx:afterRequest', function(evt) {
       if (resp.raw_text) {
         document.getElementById('raw-text-input').value = resp.raw_text;
         document.getElementById('config-loaded').value = '1';
-        document.getElementById('btn-scan').disabled = false;
 
+        // Show config status
         var statusHtml = '<div style="border-left: 4px solid #2ecc40; padding: 0.5rem 0.75rem;">' +
           '<strong style="color: #2ecc40;">Config loaded</strong> — ' +
           resp.firmware + ' ' + resp.firmware_version;
@@ -117,11 +116,21 @@ document.body.addEventListener('htmx:afterRequest', function(evt) {
           resp.raw_text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;") +
           '</pre></details>';
         evt.detail.target.innerHTML = statusHtml;
+
+        // Reveal the issue selector
+        document.getElementById('issue-section').style.display = '';
       } else if (resp.error) {
         evt.detail.target.innerHTML = '<div style="border-left: 4px solid #ff4136; padding: 0.5rem 0.75rem;">' +
           '<strong style="color: #ff4136;">Error:</strong> ' + resp.error + '</div>';
       }
     } catch(e) {}
+  }
+});
+
+// Auto-run diagnostic when an issue is selected from the dropdown
+document.getElementById('issue-select').addEventListener('change', function() {
+  if (this.value && document.getElementById('config-loaded').value === '1') {
+    document.getElementById('btn-scan').click();
   }
 });
 

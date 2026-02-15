@@ -207,8 +207,9 @@ class TestDiagnoseIndex:
 
     def test_shows_symptoms(self, client):
         resp = client.get("/diagnose/")
-        assert b"Motors won" in resp.data  # "Motors won't spin"
+        assert b"Will not arm" in resp.data
         assert b"No video" in resp.data
+        assert b"Return to home" in resp.data
 
 
 class TestUploadConfig:
