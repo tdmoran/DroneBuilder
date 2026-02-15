@@ -1,0 +1,18 @@
+<article>
+  <header>
+    <strong>{{ config.firmware }} {{ config.firmware_version }}</strong>
+    {% if config.board_name %} &mdash; {{ config.board_name }}{% endif %}
+    <small style="float: right;">{{ ts }}</small>
+  </header>
+
+  <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+    <div><strong>Features:</strong> {{ config.features | sort | join(', ') }}</div>
+    <div><strong>Settings:</strong> {{ config.master_settings | length }}</div>
+    <div><strong>Serial ports:</strong> {{ config.serial_ports | length }}</div>
+  </div>
+
+  <details>
+    <summary>Raw diff all output ({{ raw_text.splitlines() | length }} lines)</summary>
+    <pre style="max-height: 400px; overflow-y: auto; font-size: 0.8em; background: var(--pico-code-background-color); padding: 0.75rem; border-radius: 4px;">{{ raw_text }}</pre>
+  </details>
+</article>

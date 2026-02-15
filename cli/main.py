@@ -358,9 +358,6 @@ def web_server(port: int, no_open: bool):
     import threading
     import webbrowser
 
-    from web.app import create_app
-
-    app = create_app()
     url = f"http://127.0.0.1:{port}"
 
     if not no_open:
@@ -368,7 +365,17 @@ def web_server(port: int, no_open: bool):
 
     click.echo(f"  Starting DroneBuilder web UI at {click.style(url, bold=True)}")
     click.echo(click.style("  Press Ctrl+C to stop.\n", dim=True))
-    app.run(host="127.0.0.1", port=port, debug=True)
+
+    try:
+        from web.app import create_socketio_app
+
+        app, socketio = create_socketio_app()
+        socketio.run(app, host="127.0.0.1", port=port, debug=True, use_reloader=True, allow_unsafe_werkzeug=True)
+    except ImportError:
+        from web.app import create_app
+
+        app = create_app()
+        app.run(host="127.0.0.1", port=port, debug=True)
 
 
 def main():

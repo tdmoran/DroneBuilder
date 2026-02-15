@@ -1,0 +1,30 @@
+<div id="connection-controls" style="display: flex; gap: 0.75rem; align-items: flex-end; margin-bottom: 1rem; flex-wrap: wrap;">
+  <div>
+    <label for="port-select">Port</label>
+    <select id="port-select" style="min-width: 200px;">
+      <option value="">Scanning...</option>
+    </select>
+  </div>
+  <div>
+    <label for="baud-select">Baud Rate</label>
+    <select id="baud-select">
+      <option value="115200" selected>115200</option>
+      <option value="57600">57600</option>
+      <option value="230400">230400</option>
+      <option value="256000">256000</option>
+      <option value="420000">420000</option>
+    </select>
+  </div>
+  <div>
+    <button id="btn-connect" onclick="connectPort()">Connect</button>
+  </div>
+  <div>
+    <button id="btn-disconnect" class="secondary outline" onclick="disconnectPort()" disabled>Disconnect</button>
+  </div>
+  <div>
+    <button class="outline secondary" onclick="refreshPorts()" style="padding: 0.5rem;">Refresh</button>
+  </div>
+  <div id="connection-status" style="margin-left: auto;">
+    <span class="badge badge-retired">Disconnected</span>
+  </div>
+</div>

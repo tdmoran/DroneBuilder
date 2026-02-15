@@ -19,11 +19,13 @@ def create_app() -> Flask:
     # Register blueprints
     from web.routes.components import components_bp
     from web.routes.fleet import fleet_bp
+    from web.routes.serial import serial_bp
     from web.routes.validation import validation_bp
 
     app.register_blueprint(components_bp, url_prefix="/components")
     app.register_blueprint(fleet_bp, url_prefix="/fleet")
     app.register_blueprint(validation_bp, url_prefix="/validate")
+    app.register_blueprint(serial_bp, url_prefix="/serial")
 
     # Dashboard route
     @app.route("/")
@@ -61,3 +63,16 @@ def create_app() -> Flask:
         return render_template("base.html", title="Not Found", content_block="not_found"), 404
 
     return app
+
+
+def create_socketio_app():
+    """Create Flask app with SocketIO for serial terminal support."""
+    from flask_socketio import SocketIO
+
+    from web.routes.serial import init_serial_socketio
+
+    app = create_app()
+    socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
+    init_serial_socketio(socketio)
+
+    return app, socketio

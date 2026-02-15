@@ -17,11 +17,19 @@ if __name__ == "__main__":
     import threading
     import webbrowser
 
-    from web.app import create_app
-
-    app = create_app()
     url = "http://127.0.0.1:5555"
     threading.Timer(1.0, webbrowser.open, args=[url]).start()
     print(f"  Starting DroneBuilder web UI at {url}")
     print("  Press Ctrl+C to stop.\n")
-    app.run(host="127.0.0.1", port=5555, debug=True)
+
+    try:
+        from web.app import create_socketio_app
+
+        app, socketio = create_socketio_app()
+        socketio.run(app, host="127.0.0.1", port=5555, debug=True, use_reloader=True, allow_unsafe_werkzeug=True)
+    except ImportError:
+        # flask-socketio not installed — fall back to plain Flask
+        from web.app import create_app
+
+        app = create_app()
+        app.run(host="127.0.0.1", port=5555, debug=True)

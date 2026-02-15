@@ -1,0 +1,41 @@
+{% if configs %}
+<table>
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Firmware</th>
+      <th>Board</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in configs %}
+    <tr>
+      <td>{{ c.timestamp[:8] }}<small> {{ c.timestamp[9:] }}</small></td>
+      <td>{{ c.firmware }} {{ c.firmware_version }}</td>
+      <td>{{ c.board_name }}</td>
+      <td style="display: flex; gap: 0.5rem;">
+        <button class="outline" style="padding: 0.25rem 0.5rem; font-size: 0.85em;"
+                hx-get="/serial/configs/{{ slug }}/{{ c.timestamp }}"
+                hx-target="#config-viewer">
+          View
+        </button>
+        <button class="outline" style="padding: 0.25rem 0.5rem; font-size: 0.85em;"
+                hx-get="/serial/configs/{{ slug }}/{{ c.timestamp }}/validate"
+                hx-target="#firmware-validation">
+          Validate
+        </button>
+        <button class="outline secondary" style="padding: 0.25rem 0.5rem; font-size: 0.85em;"
+                hx-post="/serial/configs/{{ slug }}/{{ c.timestamp }}/delete"
+                hx-target="#config-history"
+                hx-confirm="Delete this config backup?">
+          Delete
+        </button>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty-state" style="padding: 1rem;">No config backups yet. Connect your FC or upload a diff all file.</p>
+{% endif %}

@@ -1,0 +1,37 @@
+/* FC Terminal — xterm.js layout */
+
+#terminal-container {
+  background: #1e1e1e;
+  border-radius: 8px;
+  padding: 0.5rem;
+  border: 1px solid var(--pico-muted-border-color);
+}
+
+#terminal {
+  height: 450px;
+}
+
+/* Connection controls */
+#connection-controls select {
+  margin-bottom: 0;
+}
+
+#connection-controls label {
+  font-size: 0.8em;
+  margin-bottom: 0.2rem;
+}
+
+#connection-status .badge {
+  font-size: 0.8em;
+}
+
+/* Action bar */
+#action-bar button {
+  font-size: 0.85em;
+  padding: 0.4rem 0.8rem;
+}
+
+/* Config result display */
+#config-result article {
+  margin-bottom: 0.75rem;
+}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}FC Terminal — DroneBuilder{% endblock %}
+
+{% block content %}
+<hgroup>
+  <h1>FC Terminal</h1>
+  <p>Serial CLI passthrough to your flight controller</p>
+</hgroup>
+
+{% include "serial/_connection_controls.html" %}
+
+<div id="action-bar" style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+  <button id="btn-read-config" class="outline" onclick="readConfig()" disabled>
+    Read Config
+  </button>
+  <button id="btn-upload-diff" class="outline secondary" onclick="document.getElementById('diff-upload').click()">
+    Upload Diff File
+  </button>
+  <input type="file" id="diff-upload" accept=".txt,.log,.diff" style="display:none" onchange="uploadDiffFile(this)">
+  {% if drone %}
+  <button id="btn-save-config" class="outline" onclick="saveConfig('{{ drone }}')" disabled>
+    Save to {{ drone }}
+  </button>
+  {% endif %}
+</div>
+
+<div id="config-result"></div>
+
+<div id="terminal-container">
+  <div id="terminal"></div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/terminal.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/lib/xterm.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='js/serial_terminal.js') }}"></script>
+{% endblock %}

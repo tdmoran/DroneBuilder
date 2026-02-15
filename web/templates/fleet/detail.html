@@ -79,6 +79,7 @@
   >
     Validate Build
   </button>
+  <a href="/serial/terminal?drone={{ filename }}" role="button" class="outline">Connect FC</a>
   <form method="post" action="/fleet/{{ filename }}/delete" style="margin: 0;">
     <button type="submit" class="secondary" data-confirm="Remove '{{ drone.name }}' from fleet?">Delete</button>
   </form>
@@ -87,6 +88,19 @@
 <div id="validation-results">
   <span id="val-spinner" class="htmx-indicator" aria-busy="true">Running compatibility checks...</span>
 </div>
+
+<article>
+  <header>
+    <strong>FC Config History</strong>
+  </header>
+  <div id="config-history" hx-get="/serial/configs/{{ filename }}" hx-trigger="load" hx-swap="innerHTML">
+    <span aria-busy="true">Loading config history...</span>
+  </div>
+</article>
+
+<div id="config-viewer"></div>
+
+<div id="firmware-validation"></div>
 
 <a href="/fleet/">&larr; Back to fleet</a>
 {% endblock %}

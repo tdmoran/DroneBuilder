@@ -121,3 +121,13 @@
   padding: 3rem 1rem;
   color: var(--pico-muted-color);
 }
+
+/* Config history in fleet detail */
+#config-history table {
+  font-size: 0.9em;
+}
+
+#config-viewer article,
+#firmware-validation article {
+  margin-top: 1rem;
+}
