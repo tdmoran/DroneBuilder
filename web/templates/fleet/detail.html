@@ -79,6 +79,7 @@
   >
     Validate Build
   </button>
+  <a href="/diagnose/?drone={{ filename }}" role="button" class="outline">Diagnose</a>
   <a href="/serial/terminal?drone={{ filename }}" role="button" class="outline">Connect FC</a>
   <form method="post" action="/fleet/{{ filename }}/delete" style="margin: 0;">
     <button type="submit" class="secondary" data-confirm="Remove '{{ drone.name }}' from fleet?">Delete</button>

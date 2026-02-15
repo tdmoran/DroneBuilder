@@ -18,11 +18,13 @@ def create_app() -> Flask:
 
     # Register blueprints
     from web.routes.components import components_bp
+    from web.routes.diagnose import diagnose_bp
     from web.routes.fleet import fleet_bp
     from web.routes.serial import serial_bp
     from web.routes.validation import validation_bp
 
     app.register_blueprint(components_bp, url_prefix="/components")
+    app.register_blueprint(diagnose_bp, url_prefix="/diagnose")
     app.register_blueprint(fleet_bp, url_prefix="/fleet")
     app.register_blueprint(validation_bp, url_prefix="/validate")
     app.register_blueprint(serial_bp, url_prefix="/serial")

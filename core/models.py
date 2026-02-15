@@ -134,3 +134,18 @@ class ValidationResult:
     passed: bool
     message: str
     details: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class Discrepancy:
+    """A detected mismatch between FC config and fleet build record."""
+
+    id: str                    # "disc_001" etc.
+    component_type: str        # fc, esc, vtx, receiver, battery
+    category: str              # "identity", "protocol", "feature"
+    severity: Severity
+    fleet_value: str           # What the fleet record says
+    detected_value: str        # What the FC config implies
+    message: str               # Human-readable explanation
+    fix_suggestion: str        # Actionable "how to fix" text
+    details: dict[str, Any] = field(default_factory=dict)

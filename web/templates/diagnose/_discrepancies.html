@@ -1,0 +1,81 @@
+{% if discrepancies %}
+<article>
+  <header>
+    <strong>Hardware Discrepancies Detected</strong>
+    — {{ discrepancies | length }} mismatch{{ 'es' if discrepancies | length != 1 }} between FC config and fleet record
+  </header>
+
+  {% for disc in discrepancies %}
+  <div class="discrepancy-card {{ disc.severity.value }}">
+    <div class="discrepancy-header">
+      <span class="severity-{{ disc.severity.value }}">
+        {% if disc.severity.value == 'critical' %}&#10007;{% elif disc.severity.value == 'warning' %}&#9888;{% else %}&#8505;{% endif %}
+        {{ disc.severity.value | upper }}
+      </span>
+      <strong>{{ disc.id }}</strong> — {{ disc.component_type | capitalize }}
+      {% if disc.category %}
+      <span class="badge" style="font-size: 0.75em;">{{ disc.category }}</span>
+      {% endif %}
+    </div>
+    <p>{{ disc.message }}</p>
+    <table class="spec-table" style="margin-bottom: 0.5rem;">
+      <tr><td>Fleet record</td><td>{{ disc.fleet_value }}</td></tr>
+      <tr><td>FC config</td><td>{{ disc.detected_value }}</td></tr>
+    </table>
+
+    <div class="discrepancy-resolution">
+      <fieldset>
+        <label>
+          <input type="radio" name="resolve_{{ disc.id }}" value="update_fleet">
+          I swapped the hardware — update fleet record
+        </label>
+        <label>
+          <input type="radio" name="resolve_{{ disc.id }}" value="flag_config" checked>
+          FC is misconfigured — flag for fixing
+        </label>
+        <label>
+          <input type="radio" name="resolve_{{ disc.id }}" value="ignore">
+          Ignore
+        </label>
+      </fieldset>
+    </div>
+  </div>
+  {% endfor %}
+
+  {# Carry state forward for full diagnostic #}
+  <form id="full-diag-form">
+    <input type="hidden" name="drone_filename" value="{{ drone_filename }}">
+    <input type="hidden" name="raw_text" value="{{ raw_text | e }}">
+    {# Symptoms are re-included from the main form checkboxes #}
+  </form>
+
+  <button type="button"
+    hx-post="/diagnose/run"
+    hx-include="#full-diag-form, #diagnose-form [name='symptoms']"
+    hx-target="#diagnostic-results"
+    hx-indicator="#diag-spinner">
+    Continue to Full Diagnostic
+  </button>
+  <span id="diag-spinner" class="htmx-indicator" aria-busy="true">Running full diagnostics...</span>
+</article>
+{% else %}
+<article style="border-left: 4px solid #2ecc40;">
+  <header><strong style="color: #2ecc40;">No Discrepancies Found</strong></header>
+  <p>FC config matches the fleet record — hardware appears unchanged.</p>
+
+  {# Carry state forward for full diagnostic #}
+  <form id="full-diag-form">
+    <input type="hidden" name="drone_filename" value="{{ drone_filename }}">
+    <input type="hidden" name="raw_text" value="{{ raw_text | e }}">
+  </form>
+
+  <button type="button"
+    hx-post="/diagnose/run"
+    hx-include="#full-diag-form, #diagnose-form [name='symptoms']"
+    hx-target="#diagnostic-results"
+    hx-indicator="#diag-spinner">
+    Continue to Full Diagnostic
+  </button>
+  <span id="diag-spinner" class="htmx-indicator" aria-busy="true">Running full diagnostics...</span>
+</article>
+{% endif %}
