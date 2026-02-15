@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Diagnose — DroneBuilder{% endblock %}
+
+{% block content %}
+<h1>FC Diagnostic</h1>
+<p>Select a drone, describe symptoms, load the FC config, and run diagnostics.</p>
+
+<form id="diagnose-form">
+  {# Step 1: Select drone #}
+  <article>
+    <header><strong>1. Select Drone</strong></header>
+    <select name="drone_filename" id="drone-select" required>
+      <option value="">-- Select a fleet drone --</option>
+      {% for drone in fleet %}
+      <option value="{{ drone.source_file.split('/')[-1].replace('.json', '') }}"
+        {% if selected_drone and selected_drone in drone.source_file %}selected{% endif %}>
+        {{ drone.name }}{% if drone.nickname %} ({{ drone.nickname }}){% endif %}
+        — {{ drone.drone_class }}
+      </option>
+      {% endfor %}
+    </select>
+  </article>
+
+  {# Step 2: Symptoms (optional) #}
+  <article>
+    <header><strong>2. What's wrong?</strong> <small>(optional — helps prioritize results)</small></header>
+    <div class="symptom-grid">
+      {% for key, label in symptoms.items() %}
+      <label class="symptom-checkbox">
+        <input type="checkbox" name="symptoms" value="{{ key }}">
+        {{ label }}
+      </label>
+      {% endfor %}
+    </div>
+  </article>
+
+  {# Step 3: FC Config #}
+  <article>
+    <header><strong>3. FC Config</strong></header>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+      <button type="button" id="btn-read-fc"
+        hx-post="/diagnose/read-config"
+        hx-include="#diagnose-form"
+        hx-target="#config-status"
+        hx-indicator="#config-spinner">
+        Connect &amp; Read FC
+      </button>
+      <span>or</span>
+      <button type="button" id="btn-upload-toggle" class="outline" onclick="toggleUpload()">
+        Upload / Paste diff all
+      </button>
+    </div>
+
+    <div id="upload-area" style="display: none;">
+      <textarea name="raw_text" id="raw-text-input" rows="6"
+        placeholder="Paste your 'diff all' output here..."></textarea>
+      <div style="display: flex; gap: 1rem; align-items: center; margin-top: 0.5rem;">
+        <input type="file" name="diff_file" id="diff-file-input" accept=".txt,.log">
+        <button type="button" class="outline"
+          hx-post="/diagnose/upload-config"
+          hx-include="#diagnose-form"
+          hx-target="#config-status"
+          hx-encoding="multipart/form-data"
+          hx-indicator="#config-spinner">
+          Parse Config
+        </button>
+      </div>
+    </div>
+
+    <div id="config-status">
+      <span id="config-spinner" class="htmx-indicator" aria-busy="true">Reading config...</span>
+    </div>
+  </article>
+
+  {# Hidden field for raw_text state (populated by JS after config load) #}
+  <input type="hidden" name="config_loaded" id="config-loaded" value="">
+
+  {# Step 4: Run scan #}
+  <button type="button" id="btn-scan" disabled
+    hx-post="/diagnose/scan"
+    hx-include="#diagnose-form"
+    hx-target="#discrepancy-results"
+    hx-indicator="#scan-spinner">
+    Run Diagnostic Scan
+  </button>
+  <span id="scan-spinner" class="htmx-indicator" aria-busy="true">Scanning for discrepancies...</span>
+</form>
+
+{# Results areas (swapped by htmx) #}
+<div id="discrepancy-results"></div>
+<div id="diagnostic-results"></div>
+
+<script>
+function toggleUpload() {
+  var area = document.getElementById('upload-area');
+  area.style.display = area.style.display === 'none' ? 'block' : 'none';
+}
+
+// After config loads successfully, enable the scan button and store raw_text
+document.body.addEventListener('htmx:afterRequest', function(evt) {
+  if (evt.detail.target && evt.detail.target.id === 'config-status') {
+    try {
+      var resp = JSON.parse(evt.detail.xhr.responseText);
+      if (resp.raw_text) {
+        document.getElementById('raw-text-input').value = resp.raw_text;
+        document.getElementById('config-loaded').value = '1';
+        document.getElementById('btn-scan').disabled = false;
+
+        var statusHtml = '<div style="border-left: 4px solid #2ecc40; padding: 0.5rem 0.75rem;">' +
+          '<strong style="color: #2ecc40;">Config loaded</strong> — ' +
+          resp.firmware + ' ' + resp.firmware_version;
+        if (resp.board_name) statusHtml += ' on ' + resp.board_name;
+        statusHtml += '</div>';
+        evt.detail.target.innerHTML = statusHtml;
+      } else if (resp.error) {
+        evt.detail.target.innerHTML = '<div style="border-left: 4px solid #ff4136; padding: 0.5rem 0.75rem;">' +
+          '<strong style="color: #ff4136;">Error:</strong> ' + resp.error + '</div>';
+      }
+    } catch(e) {}
+  }
+});
+
+// Handle file upload: read file into textarea
+document.getElementById('diff-file-input').addEventListener('change', function(e) {
+  var file = e.target.files[0];
+  if (file) {
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      document.getElementById('raw-text-input').value = ev.target.result;
+    };
+    reader.readAsText(file);
+  }
+});
+</script>
+{% endblock %}

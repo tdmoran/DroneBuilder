@@ -1,0 +1,12 @@
+{% if changes %}
+<details>
+  <summary>Config changes since last backup: <strong>{{ changes | length }} setting{{ 's' if changes | length != 1 }} changed</strong></summary>
+  <ul>
+    {% for change in changes %}
+    <li><small>{{ change }}</small></li>
+    {% endfor %}
+  </ul>
+</details>
+{% else %}
+<p><small>No config changes since last backup.</small></p>
+{% endif %}

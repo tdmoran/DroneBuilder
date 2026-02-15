@@ -131,3 +131,56 @@
 #firmware-validation article {
   margin-top: 1rem;
 }
+
+/* Diagnose page */
+.symptom-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 0.25rem 1.5rem;
+}
+.symptom-checkbox {
+  font-size: 0.9em;
+  cursor: pointer;
+}
+
+.discrepancy-card {
+  border-left: 4px solid;
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  background: var(--pico-card-background-color);
+}
+.discrepancy-card.critical { border-color: #ff4136; }
+.discrepancy-card.warning  { border-color: #ff851b; }
+.discrepancy-card.info     { border-color: #0074d9; }
+
+.discrepancy-header {
+  margin-bottom: 0.5rem;
+}
+.discrepancy-resolution fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+.discrepancy-resolution label {
+  display: block;
+  font-size: 0.9em;
+  margin-bottom: 0.15rem;
+}
+
+.diagnostic-finding {
+  padding: 0.25rem 0;
+}
+.diagnostic-finding details {
+  margin-top: 0.25rem;
+  margin-bottom: 0;
+}
+.diagnostic-finding details summary {
+  cursor: pointer;
+  color: var(--pico-primary);
+}
+
+#discrepancy-results,
+#diagnostic-results {
+  min-height: 1rem;
+}
