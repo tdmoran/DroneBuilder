@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Fleet — DroneBuilder{% endblock %}
+
+{% block content %}
+<hgroup>
+  <h1>Fleet</h1>
+  <p>{{ fleet | length }} drone{{ 's' if fleet | length != 1 }}</p>
+</hgroup>
+
+<div style="display: flex; gap: 1rem; align-items: end; flex-wrap: wrap; margin-bottom: 1rem;">
+  <form method="get" role="group" style="margin-bottom: 0;">
+    <select name="status" onchange="this.form.submit()">
+      <option value="">All statuses</option>
+      {% for s in statuses %}
+      <option value="{{ s }}" {{ 'selected' if s == current_status }}>{{ s | capitalize }}</option>
+      {% endfor %}
+    </select>
+    <select name="drone_class" onchange="this.form.submit()">
+      <option value="">All classes</option>
+      {% for c in classes %}
+      <option value="{{ c }}" {{ 'selected' if c == current_class }}>{{ c }}</option>
+      {% endfor %}
+    </select>
+  </form>
+  <a href="/fleet/new" role="button">Add Drone</a>
+</div>
+
+{% if fleet %}
+<figure>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Class</th>
+      <th>Status</th>
+      <th>Nickname</th>
+      <th>Weight (g)</th>
+      <th>Price ($)</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for drone in fleet %}
+    {% set fname = drone.source_file.split('/')[-1].replace('.json', '') if drone.source_file else '' %}
+    <tr>
+      <td><a href="/fleet/{{ fname }}">{{ drone.name }}</a></td>
+      <td>{{ drone.drone_class }}</td>
+      <td><span class="badge badge-{{ drone.status }}">{{ drone.status }}</span></td>
+      <td>{{ drone.nickname }}</td>
+      <td>{{ '%.0f' | format(drone.all_up_weight_g) }}</td>
+      <td>{{ '%.2f' | format(drone.total_price_usd) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</figure>
+{% else %}
+<div class="empty-state">
+  <p>No drones in your fleet{{ ' matching those filters' if current_status or current_class }}.</p>
+  <a href="/fleet/new" role="button">Add Your First Drone</a>
+</div>
+{% endif %}
+{% endblock %}

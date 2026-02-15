@@ -1,0 +1,54 @@
+{% if report.passed %}
+<article style="border-left: 4px solid #2ecc40;">
+  <header><strong style="color: #2ecc40;">Build Passed</strong></header>
+  <p>No critical compatibility issues found.</p>
+  <small>{{ report.results | length }} checks run &mdash;
+    {{ report.warnings | length }} warning{{ 's' if report.warnings | length != 1 }},
+    {{ report.info | length }} info note{{ 's' if report.info | length != 1 }}
+  </small>
+</article>
+{% else %}
+<article style="border-left: 4px solid #ff4136;">
+  <header><strong style="color: #ff4136;">Build Failed</strong> &mdash; {{ report.critical_failures | length }} critical issue{{ 's' if report.critical_failures | length != 1 }}</header>
+  <small>{{ report.results | length }} checks run &mdash;
+    {{ report.warnings | length }} warning{{ 's' if report.warnings | length != 1 }},
+    {{ report.info | length }} info note{{ 's' if report.info | length != 1 }}
+  </small>
+</article>
+{% endif %}
+
+{% if report.critical_failures %}
+<div class="validation-section critical">
+  <strong class="severity-critical">Critical Failures</strong>
+  {% for r in report.critical_failures %}
+  <div class="validation-item">
+    <strong>{{ r.constraint_id }}</strong>: {{ r.constraint_name }}<br>
+    <small>{{ r.message }}</small>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if report.warnings %}
+<div class="validation-section warning">
+  <strong class="severity-warning">Warnings</strong>
+  {% for r in report.warnings %}
+  <div class="validation-item">
+    <strong>{{ r.constraint_id }}</strong>: {{ r.constraint_name }}<br>
+    <small>{{ r.message }}</small>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if report.info %}
+<div class="validation-section info">
+  <strong class="severity-info">Info</strong>
+  {% for r in report.info %}
+  <div class="validation-item">
+    <strong>{{ r.constraint_id }}</strong>: {{ r.constraint_name }}<br>
+    <small>{{ r.message }}</small>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}

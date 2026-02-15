@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}{{ label }} — DroneBuilder{% endblock %}
+
+{% block content %}
+<hgroup>
+  <h1>{{ label }}</h1>
+  <p>{{ components | length }} component{{ 's' if components | length != 1 }}</p>
+</hgroup>
+
+{% if categories %}
+<form method="get" role="group">
+  <select name="category" onchange="this.form.submit()">
+    <option value="">All categories</option>
+    {% for cat in categories %}
+    <option value="{{ cat }}" {{ 'selected' if cat == current_category }}>{{ cat }}</option>
+    {% endfor %}
+  </select>
+  <select name="sort" onchange="this.form.submit()">
+    <option value="model" {{ 'selected' if current_sort == 'model' }}>Sort by model</option>
+    <option value="manufacturer" {{ 'selected' if current_sort == 'manufacturer' }}>Sort by manufacturer</option>
+    <option value="weight" {{ 'selected' if current_sort == 'weight' }}>Sort by weight</option>
+    <option value="price" {{ 'selected' if current_sort == 'price' }}>Sort by price</option>
+  </select>
+</form>
+{% endif %}
+
+{% if components %}
+<figure>
+<table>
+  <thead>
+    <tr>
+      <th>Manufacturer</th>
+      <th>Model</th>
+      <th>Category</th>
+      <th>Weight (g)</th>
+      <th>Price ($)</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for comp in components %}
+    <tr>
+      <td>{{ comp.manufacturer }}</td>
+      <td><a href="/components/{{ component_type }}/{{ comp.id }}">{{ comp.model }}</a></td>
+      <td>{{ comp.category }}</td>
+      <td>{{ '%.1f' | format(comp.weight_g) }}</td>
+      <td>{{ '%.2f' | format(comp.price_usd) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</figure>
+{% else %}
+<div class="empty-state">
+  <p>No components found{{ ' in category "' + current_category + '"' if current_category }}.</p>
+</div>
+{% endif %}
+
+<a href="/components/">&larr; Back to component types</a>
+{% endblock %}

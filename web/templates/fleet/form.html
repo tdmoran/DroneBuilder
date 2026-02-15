@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if action == 'edit' else 'Add' }} Drone — DroneBuilder{% endblock %}
+
+{% block content %}
+<h1>{{ 'Edit' if action == 'edit' else 'Add' }} Drone</h1>
+
+{% if action == 'edit' %}
+<form method="post" action="/fleet/{{ filename }}/edit">
+{% else %}
+<form method="post" action="/fleet/new">
+{% endif %}
+
+  <div class="grid">
+    <label>
+      Name
+      <input type="text" name="name" value="{{ data.get('name', '') }}" required>
+    </label>
+    <label>
+      Nickname
+      <input type="text" name="nickname" value="{{ data.get('nickname', '') }}">
+    </label>
+  </div>
+
+  <div class="grid">
+    <label>
+      Drone Class
+      <select
+        name="drone_class"
+        hx-get="/fleet/layout-slots"
+        hx-target="#component-slots"
+        hx-include="[name='drone_class']"
+        {% if action == 'edit' %}hx-vals='{"filename": "{{ filename }}"}'{% endif %}
+      >
+        {% for cls in drone_classes %}
+        <option value="{{ cls }}" {{ 'selected' if data.get('drone_class') == cls }}>{{ cls }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      Status
+      <select name="status">
+        {% for s in statuses %}
+        <option value="{{ s }}" {{ 'selected' if data.get('status', 'active') == s }}>{{ s | capitalize }}</option>
+        {% endfor %}
+      </select>
+    </label>
+  </div>
+
+  <label>
+    Notes
+    <textarea name="notes" rows="2">{{ data.get('notes', '') }}</textarea>
+  </label>
+
+  <h3>Components</h3>
+  <div id="component-slots">
+    {% include "partials/_component_slots.html" %}
+  </div>
+
+  <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+    <button type="submit">{{ 'Save Changes' if action == 'edit' else 'Add Drone' }}</button>
+    {% if action == 'edit' %}
+    <a href="/fleet/{{ filename }}" role="button" class="secondary outline">Cancel</a>
+    {% else %}
+    <a href="/fleet/" role="button" class="secondary outline">Cancel</a>
+    {% endif %}
+  </div>
+</form>
+{% endblock %}

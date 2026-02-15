@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Components — DroneBuilder{% endblock %}
+
+{% block content %}
+<hgroup>
+  <h1>Components</h1>
+  <p>Browse the component database by type</p>
+</hgroup>
+
+<div class="type-grid">
+  {% for t in types %}
+  <a href="/components/{{ t.type }}" class="type-card">
+    <div class="type-name">{{ t.label }}</div>
+    <div class="type-count">{{ t.count }} component{{ 's' if t.count != 1 }}</div>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}

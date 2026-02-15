@@ -9,7 +9,7 @@ from pathlib import Path
 
 import click
 
-from core.fleet import FLEET_DIR, load_fleet, load_fleet_drone, save_fleet_drone, remove_fleet_drone
+from core.fleet import FLEET_DIR, load_fleet, load_fleet_drone, save_fleet_drone, remove_fleet_drone, name_to_filename
 from core.loader import load_all_components_by_id
 from core.models import Severity
 from engines.compatibility import validate_build
@@ -17,8 +17,7 @@ from engines.compatibility import validate_build
 
 def _name_to_filename(name: str) -> str:
     """Convert a drone name to a safe filename slug."""
-    slug = re.sub(r"[^a-zA-Z0-9]+", "_", name.strip().lower()).strip("_")
-    return slug
+    return name_to_filename(name)
 
 
 def _find_drone_by_name(name: str):

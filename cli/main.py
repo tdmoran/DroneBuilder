@@ -350,6 +350,27 @@ def suggest_builds(drone_class: str, budget: float, priority: dict):
 # Entry point
 # ---------------------------------------------------------------------------
 
+@cli.command("web")
+@click.option("--port", "-p", default=5555, type=int, help="Port to run on (default: 5555).")
+@click.option("--no-open", is_flag=True, help="Don't auto-open the browser.")
+def web_server(port: int, no_open: bool):
+    """Launch the DroneBuilder web UI."""
+    import threading
+    import webbrowser
+
+    from web.app import create_app
+
+    app = create_app()
+    url = f"http://127.0.0.1:{port}"
+
+    if not no_open:
+        threading.Timer(1.0, webbrowser.open, args=[url]).start()
+
+    click.echo(f"  Starting DroneBuilder web UI at {click.style(url, bold=True)}")
+    click.echo(click.style("  Press Ctrl+C to stop.\n", dim=True))
+    app.run(host="127.0.0.1", port=port, debug=True)
+
+
 def main():
     # Register fleet commands
     from cli.fleet import fleet_group

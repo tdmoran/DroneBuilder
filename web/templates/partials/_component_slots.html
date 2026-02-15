@@ -1,0 +1,17 @@
+{% for slot in layout %}
+<label>
+  {{ slot.component_type | replace('_', ' ') | title }}
+  {% if slot.quantity > 1 %} (x{{ slot.quantity }}){% endif %}
+  {% if slot.required %}<sup>*</sup>{% endif %}
+
+  <select name="comp_{{ slot.key }}">
+    <option value="">— Select {{ slot.component_type }} —</option>
+    {% set comps = all_components.get(slot.component_type, []) %}
+    {% for comp in comps %}
+    <option value="{{ comp.id }}"
+      {{ 'selected' if data.get(slot.key) == comp.id }}
+    >{{ comp.manufacturer }} {{ comp.model }} ({{ '%.1f' | format(comp.weight_g) }}g, ${{ '%.2f' | format(comp.price_usd) }})</option>
+    {% endfor %}
+  </select>
+</label>
+{% endfor %}

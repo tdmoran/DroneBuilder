@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}{{ drone.name }} — DroneBuilder{% endblock %}
+
+{% block content %}
+<hgroup>
+  <h1>{{ drone.name }}{% if drone.nickname %} <small>({{ drone.nickname }})</small>{% endif %}</h1>
+  <p><span class="badge badge-{{ drone.status }}">{{ drone.status }}</span> &mdash; {{ drone.drone_class }}</p>
+</hgroup>
+
+<div class="grid">
+  <div>
+    <article>
+      <header>Details</header>
+      <table class="spec-table">
+        <tr><td>Class</td><td>{{ drone.drone_class }}</td></tr>
+        <tr><td>Status</td><td>{{ drone.status }}</td></tr>
+        {% if drone.acquired_date %}
+        <tr><td>Acquired</td><td>{{ drone.acquired_date }}</td></tr>
+        {% endif %}
+        {% if drone.notes %}
+        <tr><td>Notes</td><td>{{ drone.notes }}</td></tr>
+        {% endif %}
+        {% if drone.tags %}
+        <tr><td>Tags</td><td>{{ drone.tags | join(', ') }}</td></tr>
+        {% endif %}
+        <tr><td>All-up Weight</td><td>{{ '%.0f' | format(drone.all_up_weight_g) }} g</td></tr>
+        <tr><td>Dry Weight</td><td>{{ '%.0f' | format(drone.dry_weight_g) }} g</td></tr>
+        <tr><td>Total Cost</td><td>${{ '%.2f' | format(drone.total_price_usd) }}</td></tr>
+      </table>
+    </article>
+  </div>
+  <div>
+    <article>
+      <header>Components</header>
+      <table class="spec-table">
+        {% set comp_order = ['motor', 'esc', 'fc', 'frame', 'airframe', 'propeller', 'battery', 'servo', 'vtx', 'receiver'] %}
+        {% for comp_type in comp_order %}
+          {% set comp = drone.components.get(comp_type) %}
+          {% if comp is not none %}
+            {% if comp is iterable and comp is not string and comp is not mapping %}
+              {% set first = comp[0] %}
+              <tr>
+                <td>{{ comp_type }} x{{ comp | length }}</td>
+                <td>
+                  <a href="/components/{{ first.component_type }}/{{ first.id }}">
+                    {{ first.manufacturer }} {{ first.model }}
+                  </a>
+                  {% if drone.component_status.get(comp_type) %}
+                    <br><small>[{{ drone.component_status[comp_type] }}]</small>
+                  {% endif %}
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td>{{ comp_type }}</td>
+                <td>
+                  <a href="/components/{{ comp.component_type }}/{{ comp.id }}">
+                    {{ comp.manufacturer }} {{ comp.model }}
+                  </a>
+                  {% if drone.component_status.get(comp_type) %}
+                    <br><small>[{{ drone.component_status[comp_type] }}]</small>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+      </table>
+    </article>
+  </div>
+</div>
+
+<div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+  <a href="/fleet/{{ filename }}/edit" role="button" class="outline">Edit</a>
+  <button
+    hx-get="/validate/{{ filename }}"
+    hx-target="#validation-results"
+    hx-indicator="#val-spinner"
+  >
+    Validate Build
+  </button>
+  <form method="post" action="/fleet/{{ filename }}/delete" style="margin: 0;">
+    <button type="submit" class="secondary" data-confirm="Remove '{{ drone.name }}' from fleet?">Delete</button>
+  </form>
+</div>
+
+<div id="validation-results">
+  <span id="val-spinner" class="htmx-indicator" aria-busy="true">Running compatibility checks...</span>
+</div>
+
+<a href="/fleet/">&larr; Back to fleet</a>
+{% endblock %}

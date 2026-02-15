@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — DroneBuilder{% endblock %}
+
+{% block content %}
+<hgroup>
+  <h1>Dashboard</h1>
+  <p>Fleet overview and component database</p>
+</hgroup>
+
+<section>
+  <h2>Fleet</h2>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-value">{{ fleet_count }}</div>
+      <div class="stat-label">Total Drones</div>
+    </div>
+    {% for status, count in status_counts.items() %}
+    <div class="stat-card">
+      <div class="stat-value">{{ count }}</div>
+      <div class="stat-label">{{ status | capitalize }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% if fleet_count > 0 %}
+  <a href="/fleet/" role="button" class="outline">View Fleet</a>
+  {% else %}
+  <a href="/fleet/new" role="button">Add Your First Drone</a>
+  {% endif %}
+</section>
+
+<section>
+  <h2>Components</h2>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-value">{{ total_components }}</div>
+      <div class="stat-label">Total Components</div>
+    </div>
+  </div>
+  <div class="type-grid">
+    {% for ctype, count in component_counts.items() | sort %}
+    <a href="/components/{{ ctype }}" class="type-card">
+      <div class="type-name">{{ ctype | replace('_', ' ') }}</div>
+      <div class="type-count">{{ count }} component{{ 's' if count != 1 }}</div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

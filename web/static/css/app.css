@@ -1,0 +1,123 @@
+/* DroneBuilder Web UI — custom styles on top of Pico CSS */
+
+/* Status badges */
+.badge {
+  display: inline-block;
+  padding: 0.15em 0.55em;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.badge-active   { background: #2ecc40; color: #fff; }
+.badge-building { background: #ffdc00; color: #333; }
+.badge-retired  { background: #aaa;    color: #fff; }
+.badge-crashed  { background: #ff4136; color: #fff; }
+.badge-sold     { background: #85144b; color: #fff; }
+
+/* Severity colors for validation */
+.severity-critical { color: #ff4136; }
+.severity-warning  { color: #ff851b; }
+.severity-info     { color: #0074d9; }
+
+.validation-section {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid;
+  border-radius: 4px;
+  background: var(--pico-card-background-color);
+}
+.validation-section.critical { border-color: #ff4136; }
+.validation-section.warning  { border-color: #ff851b; }
+.validation-section.info     { border-color: #0074d9; }
+
+.validation-item {
+  margin: 0.3rem 0;
+  font-size: 0.95em;
+}
+
+/* Stat cards grid */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.stat-card {
+  text-align: center;
+  padding: 1rem;
+  border-radius: 8px;
+  background: var(--pico-card-background-color);
+  border: 1px solid var(--pico-muted-border-color);
+}
+.stat-card .stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.stat-card .stat-label {
+  font-size: 0.85rem;
+  color: var(--pico-muted-color);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Component type cards */
+.type-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.type-card {
+  display: block;
+  text-align: center;
+  padding: 1.25rem 0.75rem;
+  border-radius: 8px;
+  background: var(--pico-card-background-color);
+  border: 1px solid var(--pico-muted-border-color);
+  text-decoration: none;
+  transition: border-color 0.2s;
+}
+.type-card:hover {
+  border-color: var(--pico-primary);
+}
+.type-card .type-name {
+  font-weight: 600;
+  text-transform: capitalize;
+  margin-bottom: 0.25rem;
+}
+.type-card .type-count {
+  font-size: 0.85rem;
+  color: var(--pico-muted-color);
+}
+
+/* Flash messages */
+.flash {
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 0.95em;
+}
+.flash-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+.flash-error   { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+.flash-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+
+/* Validation report area */
+#validation-results {
+  min-height: 2rem;
+}
+
+/* Detail page spec table */
+.spec-table td:first-child {
+  font-weight: 600;
+  white-space: nowrap;
+  width: 40%;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--pico-muted-color);
+}

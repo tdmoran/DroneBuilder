@@ -8,6 +8,7 @@ with ``_custom: true``.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -21,6 +22,14 @@ from core.loader import (
 from core.models import Build, Component
 
 FLEET_DIR = PROJECT_ROOT / "fleet"
+
+
+def name_to_filename(name: str) -> str:
+    """Convert a drone name to a safe filename slug.
+
+    Shared by CLI and web — moved here from cli/fleet.py.
+    """
+    return re.sub(r"[^a-zA-Z0-9]+", "_", name.strip().lower()).strip("_")
 
 # Keys that are metadata, not component references.
 _METADATA_KEYS = frozenset({
