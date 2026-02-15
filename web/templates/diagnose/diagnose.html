@@ -59,8 +59,9 @@
     </div>
   </article>
 
-  {# Hidden field for raw_text state (populated by JS after config load) #}
+  {# Hidden fields populated by JS after config load #}
   <input type="hidden" name="config_loaded" id="config-loaded" value="">
+  <input type="hidden" name="raw_text" id="raw-text-hidden" value="">
 
   {# Step 3: Issue selector — hidden until config loads #}
   <article id="issue-section" style="display: none;">
@@ -102,6 +103,7 @@ document.body.addEventListener('htmx:afterRequest', function(evt) {
       var resp = JSON.parse(evt.detail.xhr.responseText);
       if (resp.raw_text) {
         document.getElementById('raw-text-input').value = resp.raw_text;
+        document.getElementById('raw-text-hidden').value = resp.raw_text;
         document.getElementById('config-loaded').value = '1';
 
         // Show config status

@@ -148,8 +148,10 @@ def scan():
     drone_filename = request.form.get("drone_filename", "")
     raw_text = request.form.get("raw_text", "")
 
-    if not drone_filename or not raw_text.strip():
-        abort(400)
+    if not drone_filename:
+        return '<div class="flash flash-error">No drone selected.</div>'
+    if not raw_text.strip():
+        return '<div class="flash flash-error">No FC config loaded. Read from FC or paste a diff all first.</div>'
 
     drone, _ = _load_drone(drone_filename)
     config = parse_diff_all(raw_text)
@@ -176,8 +178,10 @@ def run():
     raw_text = request.form.get("raw_text", "")
     symptoms = request.form.getlist("symptoms")
 
-    if not drone_filename or not raw_text.strip():
-        abort(400)
+    if not drone_filename:
+        return '<div class="flash flash-error">No drone selected.</div>'
+    if not raw_text.strip():
+        return '<div class="flash flash-error">No FC config loaded.</div>'
 
     drone, _ = _load_drone(drone_filename)
     config = parse_diff_all(raw_text)

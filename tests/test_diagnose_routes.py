@@ -282,7 +282,8 @@ class TestScan:
             "drone_filename": "test_quad",
             "raw_text": "",
         })
-        assert resp.status_code == 400
+        assert resp.status_code == 200
+        assert b"No FC config loaded" in resp.data
 
 
 class TestRun:
