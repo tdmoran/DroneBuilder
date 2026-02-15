@@ -1,0 +1,223 @@
+[
+  {
+    "id": "esc_speedybee_bls_50a_4in1",
+    "manufacturer": "SpeedyBee",
+    "model": "BLS 50A 4-in-1 ESC",
+    "specs": {
+      "continuous_current_a": 50,
+      "burst_current_a": 65,
+      "voltage_range": "3S-6S",
+      "firmware": "BLHeli_S",
+      "protocol": "DShot600",
+      "mounting_pattern_mm": "30.5x30.5",
+      "dimensions_mm": "42x42x8",
+      "bec": false,
+      "current_sensor": true,
+      "mosfet": "5S4E"
+    },
+    "weight_g": 13.2,
+    "price_usd": 32.99,
+    "category": "5inch"
+  },
+  {
+    "id": "esc_speedybee_bls_60a_4in1",
+    "manufacturer": "SpeedyBee",
+    "model": "BLS 60A 4-in-1 ESC",
+    "specs": {
+      "continuous_current_a": 60,
+      "burst_current_a": 75,
+      "voltage_range": "3S-6S",
+      "firmware": "BLHeli_S",
+      "protocol": "DShot600",
+      "mounting_pattern_mm": "30.5x30.5",
+      "dimensions_mm": "43x43x8",
+      "bec": false,
+      "current_sensor": true,
+      "mosfet": "5S4E"
+    },
+    "weight_g": 14.5,
+    "price_usd": 38.99,
+    "category": "5inch"
+  },
+  {
+    "id": "esc_tmotor_f45a_v2_4in1",
+    "manufacturer": "T-Motor",
+    "model": "F45A V2 4-in-1 ESC",
+    "specs": {
+      "continuous_current_a": 45,
+      "burst_current_a": 55,
+      "voltage_range": "3S-6S",
+      "firmware": "BLHeli_32",
+      "protocol": "DShot1200",
+      "mounting_pattern_mm": "30.5x30.5",
+      "dimensions_mm": "42x42x8",
+      "bec": false,
+      "current_sensor": true,
+      "mosfet": "TDFN3x3"
+    },
+    "weight_g": 13.0,
+    "price_usd": 49.99,
+    "category": "5inch"
+  },
+  {
+    "id": "esc_tmotor_f55a_pro2_4in1",
+    "manufacturer": "T-Motor",
+    "model": "F55A Pro II 4-in-1 ESC",
+    "specs": {
+      "continuous_current_a": 55,
+      "burst_current_a": 65,
+      "voltage_range": "3S-6S",
+      "firmware": "BLHeli_32",
+      "protocol": "DShot1200",
+      "mounting_pattern_mm": "30.5x30.5",
+      "dimensions_mm": "43x43x9",
+      "bec": false,
+      "current_sensor": true,
+      "mosfet": "TDFN3x3"
+    },
+    "weight_g": 14.8,
+    "price_usd": 59.99,
+    "category": "5inch"
+  },
+  {
+    "id": "esc_diatone_mamba_f50_4in1",
+    "manufacturer": "Diatone",
+    "model": "Mamba F50 4-in-1 ESC",
+    "specs": {
+      "continuous_current_a": 50,
+      "burst_current_a": 65,
+      "voltage_range": "3S-6S",
+      "firmware": "BLHeli_32",
+      "protocol": "DShot1200",
+      "mounting_pattern_mm": "30.5x30.5",
+      "dimensions_mm": "42x42x8",
+      "bec": false,
+      "current_sensor": true,
+      "mosfet": "5S4E"
+    },
+    "weight_g": 13.5,
+    "price_usd": 44.99,
+    "category": "5inch"
+  },
+  {
+    "id": "esc_hakrc_35a_4in1",
+    "manufacturer": "HAKRC",
+    "model": "35A 4-in-1 ESC",
+    "specs": {
+      "continuous_current_a": 35,
+      "burst_current_a": 45,
+      "voltage_range": "3S-6S",
+      "firmware": "BLHeli_S",
+      "protocol": "DShot600",
+      "mounting_pattern_mm": "30.5x30.5",
+      "dimensions_mm": "40x40x7",
+      "bec": false,
+      "current_sensor": true,
+      "mosfet": "EFM8BB21"
+    },
+    "weight_g": 10.8,
+    "price_usd": 19.99,
+    "category": "5inch"
+  },
+  {
+    "id": "esc_flywoo_goku_50a_4in1",
+    "manufacturer": "Flywoo",
+    "model": "GOKU GN745 50A 4-in-1 ESC",
+    "specs": {
+      "continuous_current_a": 50,
+      "burst_current_a": 65,
+      "voltage_range": "3S-6S",
+      "firmware": "BLHeli_32",
+      "protocol": "DShot1200",
+      "mounting_pattern_mm": "30.5x30.5",
+      "dimensions_mm": "42x42x8",
+      "bec": false,
+      "current_sensor": true,
+      "mosfet": "5S4E"
+    },
+    "weight_g": 13.0,
+    "price_usd": 46.99,
+    "category": "5inch"
+  },
+  {
+    "id": "esc_speedybee_bls_25a_4in1_20x20",
+    "manufacturer": "SpeedyBee",
+    "model": "BLS 25A 4-in-1 ESC 20x20",
+    "specs": {
+      "continuous_current_a": 25,
+      "burst_current_a": 35,
+      "voltage_range": "2S-4S",
+      "firmware": "BLHeli_S",
+      "protocol": "DShot600",
+      "mounting_pattern_mm": "20x20",
+      "dimensions_mm": "28x28x6",
+      "bec": false,
+      "current_sensor": true,
+      "mosfet": "EFM8BB21"
+    },
+    "weight_g": 5.2,
+    "price_usd": 21.99,
+    "category": "3inch"
+  },
+  {
+    "id": "esc_flywoo_goku_20a_4in1_20x20",
+    "manufacturer": "Flywoo",
+    "model": "GOKU 20A 4-in-1 ESC 20x20",
+    "specs": {
+      "continuous_current_a": 20,
+      "burst_current_a": 30,
+      "voltage_range": "2S-4S",
+      "firmware": "BLHeli_S",
+      "protocol": "DShot600",
+      "mounting_pattern_mm": "20x20",
+      "dimensions_mm": "27x27x5",
+      "bec": false,
+      "current_sensor": true,
+      "mosfet": "EFM8BB21"
+    },
+    "weight_g": 4.5,
+    "price_usd": 19.99,
+    "category": "3inch"
+  },
+  {
+    "id": "esc_betafpv_12a_aio_whoop",
+    "manufacturer": "BetaFPV",
+    "model": "Toothpick F4 12A AIO ESC",
+    "specs": {
+      "continuous_current_a": 12,
+      "burst_current_a": 15,
+      "voltage_range": "1S-2S",
+      "firmware": "BLHeli_S",
+      "protocol": "DShot600",
+      "mounting_pattern_mm": "25.5x25.5",
+      "dimensions_mm": "26x26x4",
+      "bec": true,
+      "bec_output": "5V/1A",
+      "current_sensor": true,
+      "mosfet": "EFM8BB21"
+    },
+    "weight_g": 3.8,
+    "price_usd": 29.99,
+    "category": "whoop"
+  },
+  {
+    "id": "esc_geprc_taker_55a_4in1",
+    "manufacturer": "GEPRC",
+    "model": "TAKER G4 55A 4-in-1 ESC",
+    "specs": {
+      "continuous_current_a": 55,
+      "burst_current_a": 70,
+      "voltage_range": "3S-6S",
+      "firmware": "BLHeli_32",
+      "protocol": "DShot1200",
+      "mounting_pattern_mm": "30.5x30.5",
+      "dimensions_mm": "43x43x9",
+      "bec": false,
+      "current_sensor": true,
+      "mosfet": "TDFN3x3"
+    },
+    "weight_g": 14.2,
+    "price_usd": 52.99,
+    "category": "5inch"
+  }
+]

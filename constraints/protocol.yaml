@@ -1,0 +1,299 @@
+# DroneBuilder Protocol Constraints
+# Rules governing firmware, communication protocol, and digital system compatibility.
+#
+# Protocol mismatches are subtle — everything bolts together physically and
+# powers up electrically, but components cannot communicate. These issues are
+# discovered only after assembly and first power-on, making them particularly
+# frustrating for builders.
+
+schema_version: "1.0.0"
+category: protocol
+
+rules:
+
+  # ---------------------------------------------------------------------------
+  # ESC protocol <-> FC firmware compatibility
+  # ---------------------------------------------------------------------------
+  - id: proto_001
+    category: protocol
+    name: "ESC protocol supported by FC firmware"
+    description: >
+      The ESC's motor control protocol must be supported by the flight
+      controller's firmware. DShot (150/300/600) requires Betaflight, INAV,
+      or Ardupilot with compatible timer hardware. Older protocols like
+      OneShot125 and Multishot are supported on most firmwares but are
+      largely obsolete. BLHeli_32 and AM32 ESCs support DShot natively;
+      BLHeli_S supports up to DShot600. Some specialty ESCs use proprietary
+      protocols that require specific FC firmware support.
+    severity: critical
+    components: [esc, fc]
+    check:
+      field_a: "esc.protocol"
+      operator: in
+      field_b: "fc.supported_esc_protocols"
+    message_template: >
+      ESC protocol ({field_a}) is not supported by the FC firmware
+      ({fc.firmware}). Supported protocols: {field_b}. The FC will not be
+      able to control the motors.
+
+  - id: proto_002
+    category: protocol
+    name: "DShot protocol requires adequate timer resources"
+    description: >
+      DShot is a digital protocol that requires a dedicated hardware timer
+      per motor output on the FC. Not all FC motor pads share separate
+      timers — some cheap FCs have timer conflicts that limit DShot to
+      fewer than 4 outputs. If the FC's MCU doesn't have enough independent
+      timers for all motor outputs, DShot will not work on all motors.
+      This is primarily a concern on F411-based FCs.
+    severity: warning
+    components: [fc, esc]
+    check:
+      field_a: "fc.dshot_capable_outputs"
+      operator: gte
+      field_b: "build.motor_count"
+    message_template: >
+      FC has {field_a} DShot-capable motor outputs but the build requires
+      {field_b} motors. Some motor outputs may fall back to a slower
+      protocol or not work at all. Consider an F405 or F722 based FC.
+
+  - id: proto_003
+    category: protocol
+    name: "Bidirectional DShot support for RPM filtering"
+    description: >
+      RPM-based dynamic notch filtering (a significant advancement in
+      FPV flight performance) requires bidirectional DShot (also called
+      DShot telemetry). This needs both ESC and FC support. BLHeli_32 and
+      AM32 ESCs support bidirectional DShot; most BLHeli_S ESCs do not
+      unless flashed with Bluejay firmware. The FC firmware must be
+      Betaflight 4.1+ or INAV 3.0+.
+    severity: info
+    components: [esc, fc]
+    check:
+      field_a: "esc.bidirectional_dshot"
+      operator: eq
+      field_b: true
+    message_template: >
+      ESC does not support bidirectional DShot. RPM-based filtering will
+      not be available. For the best flight performance, consider BLHeli_32,
+      AM32, or Bluejay-flashed BLHeli_S ESCs.
+
+  # ---------------------------------------------------------------------------
+  # Receiver <-> FC UART compatibility
+  # ---------------------------------------------------------------------------
+  - id: proto_004
+    category: protocol
+    name: "FC has free UART for receiver"
+    description: >
+      Serial receivers (CRSF, ELRS, SBUS, IBUS, FPort) require a dedicated
+      UART on the flight controller. The FC must have at least one free UART
+      (not occupied by other peripherals like GPS, VTX SmartAudio, or ESC
+      telemetry) to connect the receiver. F411-based FCs often have only
+      2 usable UARTs, which can be a bottleneck. F405 and F722 FCs
+      typically provide 4-6 UARTs.
+    severity: critical
+    components: [fc, receiver]
+    check:
+      field_a: "fc.free_uart_count"
+      operator: gte
+      field_b: 1
+    message_template: >
+      No free UARTs available on the FC for the receiver. All {fc.total_uart_count}
+      UARTs are occupied by other peripherals. Choose an FC with more
+      UARTs or consolidate peripherals.
+
+  - id: proto_005
+    category: protocol
+    name: "Receiver protocol supported by FC firmware"
+    description: >
+      The receiver's serial protocol must be supported by the FC's firmware.
+      CRSF (Crossfire/ELRS) requires Betaflight 4.0+ or INAV 2.6+. SBUS
+      is universally supported. IBUS requires specific UART inversion
+      support. FPort combines control and telemetry on a single half-duplex
+      UART. SPI-based receivers (built into some FCs) bypass UART entirely
+      but only work with specific protocols.
+    severity: critical
+    components: [receiver, fc]
+    check:
+      field_a: "receiver.protocol"
+      operator: in
+      field_b: "fc.supported_rx_protocols"
+    message_template: >
+      Receiver protocol ({field_a}) is not supported by the FC firmware
+      ({fc.firmware}). Supported protocols: {field_b}. The receiver will
+      not communicate with the FC.
+
+  - id: proto_006
+    category: protocol
+    name: "SBUS receivers need UART with signal inversion"
+    description: >
+      SBUS uses an inverted serial signal. On F4 and F7 processors, hardware
+      inversion is available on specific UARTs. On F411 chips, the single
+      inverted UART is often UART1, which may already be assigned. If no
+      inverted UART is available, an external inverter circuit must be added.
+      CRSF and ELRS do not require inversion and are generally easier to
+      connect.
+    severity: warning
+    components: [receiver, fc]
+    check:
+      field_a: "receiver.requires_inversion"
+      operator: expression
+      field_b: "fc.inverted_uart_available"
+      expression: "(receiver.requires_inversion == false) || (fc.inverted_uart_available == true)"
+    message_template: >
+      Receiver protocol requires signal inversion but the FC has no
+      available inverted UART. You will need an external inverter circuit
+      or should switch to a non-inverted protocol like CRSF or ELRS.
+
+  - id: proto_007
+    category: protocol
+    name: "Half-duplex UART available for FPort or CRSF telemetry"
+    description: >
+      Protocols that combine control and telemetry on a single wire (FPort,
+      CRSF, ELRS) require a UART that supports half-duplex operation. On
+      most STM32 FCs this means using only the TX pad of a UART. Not all
+      FC UART pads support half-duplex. If the only free UART doesn't
+      support it, telemetry will not work.
+    severity: warning
+    components: [receiver, fc]
+    check:
+      field_a: "receiver.requires_half_duplex"
+      operator: expression
+      field_b: "fc.half_duplex_uart_available"
+      expression: "(receiver.requires_half_duplex == false) || (fc.half_duplex_uart_available == true)"
+    message_template: >
+      Receiver protocol requires half-duplex UART but none are available
+      on the FC. Telemetry may not work. Check the FC's UART wiring
+      diagram for half-duplex capable pads.
+
+  # ---------------------------------------------------------------------------
+  # VTX system compatibility
+  # ---------------------------------------------------------------------------
+  - id: proto_008
+    category: protocol
+    name: "DJI VTX requires compatible FC configuration"
+    description: >
+      DJI digital FPV systems (Air Unit, Vista, O3 Air Unit) connect to
+      the FC via a custom MSP DisplayPort protocol over a UART. The FC
+      must run Betaflight with MSP DisplayPort OSD enabled, or INAV with
+      DJI-compatible OSD output. Additionally, the FC needs a free UART
+      for the DJI connection. The DJI system does NOT work with FC
+      firmwares that lack MSP DisplayPort support.
+    severity: critical
+    components: [vtx, fc]
+    check:
+      field_a: "vtx.system"
+      operator: expression
+      field_b: "fc.firmware"
+      expression: "(vtx.system != 'dji') || (fc.supports_msp_displayport == true)"
+    message_template: >
+      DJI VTX system requires MSP DisplayPort support on the FC, but the
+      current FC firmware ({fc.firmware}) does not support it. Use
+      Betaflight 4.1+ or INAV 2.6+ with MSP DisplayPort enabled.
+
+  - id: proto_009
+    category: protocol
+    name: "HDZero VTX requires compatible FC OSD configuration"
+    description: >
+      HDZero digital VTX systems use MSP DisplayPort for OSD, similar to
+      DJI but with different resolution and protocol nuances. The FC must
+      support MSP DisplayPort output, and the UART baud rate must be set
+      appropriately (115200 for HDZero vs 230400 for DJI in some
+      configurations). Betaflight 4.3+ has native HDZero canvas mode
+      support.
+    severity: warning
+    components: [vtx, fc]
+    check:
+      field_a: "vtx.system"
+      operator: expression
+      field_b: "fc.firmware"
+      expression: "(vtx.system != 'hdzero') || (fc.supports_msp_displayport == true)"
+    message_template: >
+      HDZero VTX requires MSP DisplayPort OSD support. Ensure the FC
+      firmware supports canvas mode OSD output for HDZero.
+
+  - id: proto_010
+    category: protocol
+    name: "Analog VTX SmartAudio/Tramp UART available"
+    description: >
+      Analog VTXs with SmartAudio or IRC Tramp support allow the FC to
+      control VTX power, channel, and band via a single-wire serial
+      connection. While not strictly required (settings can be changed via
+      buttons on the VTX), SmartAudio/Tramp control is a major convenience
+      feature. It requires one UART TX pad on the FC.
+    severity: info
+    components: [vtx, fc]
+    check:
+      field_a: "vtx.control_protocol"
+      operator: expression
+      field_b: "fc.free_uart_count"
+      expression: "(vtx.control_protocol == 'none') || (fc.free_uart_count >= 1)"
+    message_template: >
+      VTX supports {vtx.control_protocol} but no free UART is available
+      on the FC for VTX control. You can still use the VTX but will need
+      to change settings manually via buttons.
+
+  # ---------------------------------------------------------------------------
+  # GPS <-> FC compatibility
+  # ---------------------------------------------------------------------------
+  - id: proto_011
+    category: protocol
+    name: "GPS module UART protocol compatible with FC"
+    description: >
+      GPS modules communicate via UART using NMEA or UBX protocols. INAV
+      supports both and auto-detects. Betaflight has limited GPS support
+      (primarily for GPS Rescue mode) and expects UBX protocol from u-blox
+      modules. Using a non-u-blox GPS with Betaflight may require
+      additional configuration or may not work at all.
+    severity: warning
+    components: [gps, fc]
+    check:
+      field_a: "gps.protocol"
+      operator: in
+      field_b: "fc.supported_gps_protocols"
+    message_template: >
+      GPS protocol ({field_a}) may not be supported by the FC firmware
+      ({fc.firmware}). Supported GPS protocols: {field_b}.
+
+  # ---------------------------------------------------------------------------
+  # ELRS specific checks
+  # ---------------------------------------------------------------------------
+  - id: proto_012
+    category: protocol
+    name: "ELRS receiver frequency matches TX module frequency"
+    description: >
+      ExpressLRS receivers and transmitter modules must operate on the same
+      frequency band. A 2.4GHz ELRS receiver will not bind with a 900MHz
+      ELRS transmitter module, and vice versa. This is a fundamental radio
+      frequency incompatibility that cannot be resolved with firmware.
+    severity: critical
+    components: [receiver, transmitter]
+    check:
+      field_a: "receiver.frequency_band"
+      operator: eq
+      field_b: "transmitter.frequency_band"
+    message_template: >
+      Receiver frequency band ({field_a}) does not match transmitter
+      module frequency band ({field_b}). ELRS RX and TX must be on the
+      same band (both 2.4GHz or both 900MHz).
+
+  - id: proto_013
+    category: protocol
+    name: "VTX channel and receiver frequency band interference check"
+    description: >
+      A 2.4GHz control link (ELRS/Crossfire 2.4) can experience interference
+      from 2.4GHz video transmitters if the VTX operates on nearby
+      frequencies. While not a hard incompatibility, running a 2.4GHz
+      receiver with a VTX on 2.4GHz (some DJI systems) may cause range
+      reduction on the control link.
+    severity: info
+    components: [receiver, vtx]
+    check:
+      field_a: "receiver.frequency_band"
+      operator: expression
+      field_b: "vtx.frequency_band"
+      expression: "!((receiver.frequency_band == '2.4GHz') && (vtx.frequency_band == '2.4GHz'))"
+    message_template: >
+      Both receiver and VTX operate on 2.4GHz. This may cause interference
+      and reduce control link range. Consider using a 5.8GHz VTX or 900MHz
+      control link to avoid frequency overlap.

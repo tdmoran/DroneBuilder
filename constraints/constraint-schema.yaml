@@ -1,0 +1,148 @@
+# DroneBuilder Constraint Schema
+# Defines the declarative rule format used by all constraint files.
+# Validation engines interpret these rules to check component compatibility.
+#
+# Each rule is a self-contained declaration. Engines resolve dot-path references
+# against the current build manifest to evaluate compatibility.
+
+schema_version: "1.0.0"
+
+rule:
+  id:
+    type: string
+    description: >
+      Unique identifier for the rule. Convention: category prefix + underscore +
+      three-digit number. Examples: "elec_001", "mech_003", "proto_002", "wt_001".
+    required: true
+
+  category:
+    type: enum
+    values: [electrical, mechanical, protocol, weight]
+    description: >
+      Top-level domain the rule belongs to. Determines which constraint file
+      houses the rule and which validation phase evaluates it.
+    required: true
+
+  name:
+    type: string
+    description: >
+      Short, human-readable label shown in UI and reports.
+      Keep under 80 characters.
+    required: true
+
+  description:
+    type: string
+    description: >
+      Detailed technical explanation of why this constraint exists, what failure
+      looks like in practice, and any relevant engineering background. Written
+      for a builder who wants to understand the "why" behind a flagged issue.
+    required: true
+
+  severity:
+    type: enum
+    values: [critical, warning, info]
+    description: >
+      critical  - Build must not fly. Risk of fire, component destruction, or
+                  loss of control.
+      warning   - Build will fly but performance or longevity is compromised.
+                  Builder should review.
+      info      - Informational note. No immediate risk but worth knowing.
+    required: true
+
+  components:
+    type: list
+    items:
+      type: string
+      description: >
+        Component type slug as it appears in the build manifest. Common values:
+        battery, esc, motor, fc, vtx, receiver, frame, propeller, camera.
+    description: >
+      The component types involved in this check. The engine uses this list to
+      determine whether the rule is evaluable for a given (possibly incomplete)
+      build. A rule is skipped when any listed component is missing.
+    required: true
+
+  check:
+    type: object
+    description: >
+      The declarative condition to evaluate. The engine resolves field paths
+      against the build manifest, applies the operator, and produces a
+      pass/fail result.
+    required: true
+    properties:
+
+      field_a:
+        type: string
+        description: >
+          Dot-path to the left-hand operand in the build manifest.
+          Examples: "battery.cell_count", "motor.max_current_a",
+          "frame.max_prop_size_in". May also be a computed expression
+          prefixed with "calc:" (e.g., "calc:motor.max_current_a * 4").
+        required: true
+
+      operator:
+        type: enum
+        values:
+          - lt           # field_a < field_b
+          - lte          # field_a <= field_b
+          - gt           # field_a > field_b
+          - gte          # field_a >= field_b
+          - eq           # field_a == field_b
+          - neq          # field_a != field_b
+          - in           # field_a is a member of field_b (list)
+          - contains     # field_a (list) contains field_b
+          - multiply_lte # field_a * multiplier <= field_b
+          - range        # field_b_low <= field_a <= field_b_high
+          - expression   # evaluate the expression string
+        description: >
+          Comparison operation. Simple operators (lt, lte, gt, gte, eq, neq)
+          compare two scalar values. "in" checks membership. "contains" checks
+          that a list includes a value. "multiply_lte" multiplies field_a by a
+          constant before comparing. "range" checks that field_a falls within
+          [field_b_low, field_b_high]. "expression" delegates to the expression
+          string for arbitrary arithmetic.
+        required: true
+
+      field_b:
+        type: string
+        description: >
+          Dot-path to the right-hand operand, a literal value, or a list of
+          values (for "in" / "contains"). For "range" operator this holds the
+          low bound; use field_b_high for the upper bound.
+        required: true
+
+      field_b_high:
+        type: string
+        description: >
+          Upper bound for "range" operator. Dot-path or literal.
+        required: false
+
+      multiplier:
+        type: number
+        description: >
+          Scalar multiplier used by "multiply_lte" operator.
+          Example: 1.2 for a 20% safety margin.
+        required: false
+
+      expression:
+        type: string
+        description: >
+          Free-form arithmetic expression evaluated when operator is
+          "expression". May reference any dot-path in the build manifest.
+          Engine must sandbox evaluation. Example:
+          "motor.max_current_a * 4 < (battery.capacity_mah / 1000) * battery.c_rating"
+        required: false
+
+  message_template:
+    type: string
+    description: >
+      Human-readable message emitted when the rule fails. Supports
+      placeholders in curly braces that the engine replaces with resolved
+      values. Standard placeholders:
+        {component}     - the component type that triggered the failure
+        {field_a}       - resolved value of field_a
+        {field_b}       - resolved value of field_b
+        {field_b_high}  - resolved value of field_b_high (range checks)
+        {limit}         - computed limit value
+        {actual}        - computed actual value
+    required: true

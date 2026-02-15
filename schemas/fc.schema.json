@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dronebuilder.local/schemas/fc.schema.json",
+  "title": "FPV Drone Flight Controller",
+  "description": "Schema for a flight controller (FC) used in FPV drones. Covers MCU, gyro, connectivity, and firmware compatibility.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the flight controller, typically a UUID or slug.",
+      "minLength": 1
+    },
+    "manufacturer": {
+      "type": "string",
+      "description": "Name of the FC manufacturer (e.g., SpeedyBee, Matek, Diatone).",
+      "minLength": 1
+    },
+    "model": {
+      "type": "string",
+      "description": "Model name or number of the flight controller (e.g., F405-STD V3).",
+      "minLength": 1
+    },
+    "mcu": {
+      "type": "string",
+      "description": "Main microcontroller unit. Determines processing power, flash size, and firmware compatibility.",
+      "enum": ["STM32F405", "STM32F722", "STM32H743", "STM32G473", "AT32F435"]
+    },
+    "gyro": {
+      "type": "string",
+      "description": "Inertial measurement unit (gyroscope/accelerometer) chip. Determines flight feel and noise characteristics.",
+      "enum": ["BMI270", "ICM-42688-P", "MPU6000"]
+    },
+    "uart_count": {
+      "type": "integer",
+      "description": "Number of available UART ports for peripherals such as receivers, GPS, VTX control, and telemetry.",
+      "minimum": 1,
+      "maximum": 10
+    },
+    "has_barometer": {
+      "type": "boolean",
+      "description": "Whether the FC includes an onboard barometer for altitude estimation. Useful for GPS rescue and iNAV."
+    },
+    "has_sd_card": {
+      "type": "boolean",
+      "description": "Whether the FC has a micro SD card slot for blackbox logging."
+    },
+    "osd_chip": {
+      "type": "string",
+      "description": "On-screen display chip model for overlaying telemetry on the video feed (e.g., AT7456E). Empty string or null if no analog OSD chip is present.",
+      "minLength": 0
+    },
+    "mounting_pattern_mm": {
+      "type": "string",
+      "description": "Mounting hole pattern for stack integration. Must match the ESC and frame stack.",
+      "enum": ["20x20", "25.5x25.5", "30.5x30.5"]
+    },
+    "firmware_support": {
+      "type": "array",
+      "description": "List of flight controller firmware projects that officially support this board.",
+      "items": {
+        "type": "string",
+        "enum": ["betaflight", "inav", "kiss", "ardupilot"]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "voltage_range_s": {
+      "type": "object",
+      "description": "Supported input voltage expressed as LiPo cell count range.",
+      "properties": {
+        "min": {
+          "type": "integer",
+          "description": "Minimum supported LiPo cell count (e.g., 2 for 2S).",
+          "minimum": 1,
+          "maximum": 14
+        },
+        "max": {
+          "type": "integer",
+          "description": "Maximum supported LiPo cell count (e.g., 6 for 6S).",
+          "minimum": 1,
+          "maximum": 14
+        }
+      },
+      "required": ["min", "max"],
+      "additionalProperties": false
+    },
+    "weight_g": {
+      "type": "number",
+      "description": "Weight of the flight controller board in grams.",
+      "minimum": 1,
+      "maximum": 100
+    },
+    "price_usd": {
+      "type": "number",
+      "description": "Price in US dollars for the flight controller board.",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "id",
+    "manufacturer",
+    "model",
+    "mcu",
+    "gyro",
+    "uart_count",
+    "has_barometer",
+    "has_sd_card",
+    "osd_chip",
+    "mounting_pattern_mm",
+    "firmware_support",
+    "voltage_range_s",
+    "weight_g",
+    "price_usd"
+  ],
+  "additionalProperties": false
+}

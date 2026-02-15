@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dronebuilder.local/schemas/build.schema.json",
+  "title": "FPV Drone Build",
+  "description": "Schema for a complete FPV drone build configuration. References all individual component schemas and includes build metadata. A build requires exactly one frame, FC, ESC, VTX, receiver, and battery, plus four motors and a propeller spec (used on all four motors).",
+  "type": "object",
+  "properties": {
+    "build_name": {
+      "type": "string",
+      "description": "Human-readable name for this build configuration (e.g., '5-inch Freestyle Ripper', '3.5-inch Cinewhoop').",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "drone_class": {
+      "type": "string",
+      "description": "Classification of the drone build by intended use case and size category.",
+      "enum": [
+        "micro_whoop",
+        "toothpick",
+        "3_inch",
+        "3.5_inch",
+        "5_inch_freestyle",
+        "5_inch_race",
+        "6_inch_long_range",
+        "7_inch_long_range",
+        "10_inch_cine_lift",
+        "x_class"
+      ]
+    },
+    "target_auw_g": {
+      "type": "number",
+      "description": "Target all-up weight in grams, including the battery. Used for thrust-to-weight ratio calculations and regulatory compliance (e.g., sub-250g).",
+      "minimum": 20,
+      "maximum": 15000
+    },
+    "notes": {
+      "type": "string",
+      "description": "Free-text notes about the build, such as intended flying style, tune settings, or special considerations.",
+      "maxLength": 5000
+    },
+    "frame": {
+      "$ref": "frame.schema.json",
+      "description": "The frame used for this build. Determines prop size, stack mounting, and motor mounting compatibility."
+    },
+    "motors": {
+      "type": "array",
+      "description": "Exactly four motors for a quadcopter build. All four should typically be the same model, but the schema allows mixed configurations for experimental builds.",
+      "items": {
+        "$ref": "motor.schema.json"
+      },
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "propellers": {
+      "$ref": "propeller.schema.json",
+      "description": "Propeller specification for the build. A single propeller model is chosen; four physical props (2 CW + 2 CCW) are used."
+    },
+    "esc": {
+      "$ref": "esc.schema.json",
+      "description": "Electronic speed controller for the build. For 4in1 topology, this is a single board; for individual topology, this represents one ESC (four are assumed)."
+    },
+    "fc": {
+      "$ref": "fc.schema.json",
+      "description": "Flight controller for the build. Must have compatible mounting pattern with the ESC and frame."
+    },
+    "vtx": {
+      "$ref": "vtx.schema.json",
+      "description": "Video transmitter for the build. Determines the FPV video system (analog or digital)."
+    },
+    "receiver": {
+      "$ref": "receiver.schema.json",
+      "description": "Radio control receiver for the build. Must be compatible with the pilot's transmitter."
+    },
+    "battery": {
+      "$ref": "battery.schema.json",
+      "description": "Battery pack for the build. Cell count must fall within the voltage ranges supported by the motors, ESC, and FC."
+    }
+  },
+  "required": [
+    "build_name",
+    "drone_class",
+    "target_auw_g",
+    "frame",
+    "motors",
+    "propellers",
+    "esc",
+    "fc",
+    "vtx",
+    "receiver",
+    "battery"
+  ],
+  "additionalProperties": false
+}

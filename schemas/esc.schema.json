@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dronebuilder.local/schemas/esc.schema.json",
+  "title": "FPV Drone ESC",
+  "description": "Schema for an Electronic Speed Controller (ESC) used in FPV drones. Covers 4-in-1, individual, and all-in-one topologies.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the ESC, typically a UUID or slug.",
+      "minLength": 1
+    },
+    "manufacturer": {
+      "type": "string",
+      "description": "Name of the ESC manufacturer (e.g., Hobbywing, T-Motor, Aikon).",
+      "minLength": 1
+    },
+    "model": {
+      "type": "string",
+      "description": "Model name or number of the ESC (e.g., XRotor Micro 45A).",
+      "minLength": 1
+    },
+    "topology": {
+      "type": "string",
+      "description": "Physical topology of the ESC. '4in1' is a single board controlling four motors; 'individual' is one ESC per motor; 'aio' integrates the ESC with a flight controller.",
+      "enum": ["4in1", "individual", "aio"]
+    },
+    "continuous_amps": {
+      "type": "number",
+      "description": "Maximum continuous current per motor output in amps.",
+      "minimum": 1,
+      "maximum": 200
+    },
+    "burst_amps": {
+      "type": "number",
+      "description": "Maximum burst (short-duration) current per motor output in amps. Typically sustainable for only a few seconds.",
+      "minimum": 1,
+      "maximum": 300
+    },
+    "voltage_min_s": {
+      "type": "integer",
+      "description": "Minimum supported LiPo cell count (e.g., 2 for 2S).",
+      "minimum": 1,
+      "maximum": 14
+    },
+    "voltage_max_s": {
+      "type": "integer",
+      "description": "Maximum supported LiPo cell count (e.g., 6 for 6S).",
+      "minimum": 1,
+      "maximum": 14
+    },
+    "firmware": {
+      "type": "string",
+      "description": "ESC firmware loaded or supported. Determines configurability, features, and protocol support.",
+      "enum": ["BLHeli_32", "AM32", "BLHeli_S"]
+    },
+    "protocols": {
+      "type": "array",
+      "description": "Communication protocols supported between the flight controller and the ESC.",
+      "items": {
+        "type": "string",
+        "enum": ["DShot150", "DShot300", "DShot600", "PWM", "Oneshot"]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "mounting_pattern_mm": {
+      "type": "string",
+      "description": "Mounting hole pattern for stack integration. Must match the flight controller and frame stack.",
+      "enum": ["20x20", "25.5x25.5", "30.5x30.5"]
+    },
+    "weight_g": {
+      "type": "number",
+      "description": "Weight of the ESC in grams.",
+      "minimum": 1,
+      "maximum": 200
+    },
+    "price_usd": {
+      "type": "number",
+      "description": "Price in US dollars. For 4in1 this is the board price; for individual this is the per-unit price.",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "id",
+    "manufacturer",
+    "model",
+    "topology",
+    "continuous_amps",
+    "burst_amps",
+    "voltage_min_s",
+    "voltage_max_s",
+    "firmware",
+    "protocols",
+    "mounting_pattern_mm",
+    "weight_g",
+    "price_usd"
+  ],
+  "additionalProperties": false
+}

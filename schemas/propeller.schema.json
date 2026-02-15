@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dronebuilder.local/schemas/propeller.schema.json",
+  "title": "FPV Drone Propeller",
+  "description": "Schema for an FPV drone propeller, covering diameter, pitch, blade count, material, and shaft compatibility.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the propeller, typically a UUID or slug.",
+      "minLength": 1
+    },
+    "manufacturer": {
+      "type": "string",
+      "description": "Name of the propeller manufacturer (e.g., HQProp, Gemfan, DAL).",
+      "minLength": 1
+    },
+    "model": {
+      "type": "string",
+      "description": "Model name of the propeller (e.g., Ethix S5, 51466 V2).",
+      "minLength": 1
+    },
+    "diameter_inches": {
+      "type": "number",
+      "description": "Propeller diameter in inches. Common FPV sizes: 3, 3.5, 5, 7.",
+      "minimum": 1,
+      "maximum": 20
+    },
+    "pitch_inches": {
+      "type": "number",
+      "description": "Propeller pitch in inches. Represents the theoretical forward distance per revolution. Higher pitch yields more speed but draws more current.",
+      "minimum": 0.5,
+      "maximum": 15
+    },
+    "blade_count": {
+      "type": "integer",
+      "description": "Number of blades on the propeller. Common values: 2 (bi-blade), 3 (tri-blade), 4 (quad-blade).",
+      "minimum": 2,
+      "maximum": 8
+    },
+    "material": {
+      "type": "string",
+      "description": "Primary material of the propeller. 'pc' is standard polycarbonate; 'pc_glass' is glass-fiber reinforced polycarbonate for added stiffness; 'carbon' is carbon fiber composite.",
+      "enum": ["pc", "pc_glass", "carbon"]
+    },
+    "shaft_type": {
+      "type": "string",
+      "description": "Motor shaft mounting type. Must match the motor shaft type for compatibility.",
+      "enum": ["M5", "T-mount"]
+    },
+    "weight_g": {
+      "type": "number",
+      "description": "Weight of a single propeller in grams.",
+      "minimum": 0.1,
+      "maximum": 50
+    },
+    "price_usd": {
+      "type": "number",
+      "description": "Price in US dollars per set (typically 4 propellers: 2 CW and 2 CCW).",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "id",
+    "manufacturer",
+    "model",
+    "diameter_inches",
+    "pitch_inches",
+    "blade_count",
+    "material",
+    "shaft_type",
+    "weight_g",
+    "price_usd"
+  ],
+  "additionalProperties": false
+}

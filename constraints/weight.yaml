@@ -1,0 +1,283 @@
+# DroneBuilder Weight Constraints
+# Rules governing total build weight, thrust-to-weight ratios, and
+# regulatory weight class compliance.
+#
+# Weight management is central to FPV build planning. It affects flight
+# characteristics, battery life, durability, and legal classification.
+# The 250g threshold is legally significant in many jurisdictions (FAA,
+# EASA) as builds under 250g face fewer registration and operational
+# restrictions.
+
+schema_version: "1.0.0"
+category: weight
+
+rules:
+
+  # ---------------------------------------------------------------------------
+  # Sub-250g regulatory class
+  # ---------------------------------------------------------------------------
+  - id: wt_001
+    category: weight
+    name: "Sub-250g class: total build weight under 250g"
+    description: >
+      For regulatory compliance in many jurisdictions (FAA Part 107
+      exemption, EASA Open A1 sub-category, UK Flyer ID exemption),
+      the all-up weight (AUW) including battery must be under 250 grams.
+      This is the total of: frame, motors (x4), FC, ESC, receiver, VTX,
+      camera, propellers (x4), battery, antenna(s), wiring, and any
+      accessories. Even 1 gram over 250g moves the build into a heavier
+      regulatory category with additional requirements. Builders targeting
+      this class must weigh every component carefully.
+    severity: critical
+    components: [frame, motor, fc, esc, battery, propeller]
+    check:
+      field_a: "build.all_up_weight_g"
+      operator: lt
+      field_b: 250
+    message_template: >
+      All-up weight ({field_a}g) meets or exceeds the 250g regulatory
+      threshold. The build will require registration and may face
+      additional operational restrictions. Reduce weight to stay under
+      250g, or accept the heavier classification.
+
+  - id: wt_002
+    category: weight
+    name: "Sub-250g class: dry weight budget check"
+    description: >
+      For sub-250g builds, the dry weight (everything except the battery)
+      should leave enough weight budget for a usable battery. If the dry
+      weight exceeds 170g, achieving sub-250g AUW limits battery choice
+      to packs under 80g, which may severely restrict flight time. This
+      early warning helps builders catch weight creep before purchasing.
+    severity: warning
+    components: [frame, motor, fc, esc, propeller]
+    check:
+      field_a: "build.dry_weight_g"
+      operator: lte
+      field_b: 170
+    message_template: >
+      Dry weight (without battery) is {field_a}g, leaving only
+      {calc:250-field_a}g for the battery. Achieving sub-250g AUW will
+      require an extremely light battery, which may limit flight time
+      significantly.
+
+  # ---------------------------------------------------------------------------
+  # 5" freestyle weight targets
+  # ---------------------------------------------------------------------------
+  - id: wt_003
+    category: weight
+    name: "5-inch freestyle AUW warning threshold"
+    description: >
+      For 5" freestyle builds, an all-up weight over 800g is heavier than
+      typical. Most competitive 5" freestyle builds come in at 600-750g AUW
+      with a 1300-1550mAh 6S pack. Builds over 800g feel sluggish, stress
+      components more on impacts, and reduce flight time. While not a hard
+      limit, this warning prompts the builder to review if weight can be
+      reduced through component selection.
+    severity: warning
+    components: [frame, motor, fc, esc, battery, propeller]
+    check:
+      field_a: "build.all_up_weight_g"
+      operator: lte
+      field_b: 800
+    message_template: >
+      All-up weight ({field_a}g) exceeds 800g for a 5" freestyle build.
+      Typical competitive freestyle builds weigh 600-750g. The extra
+      weight will reduce agility and flight time. Review component
+      choices for weight savings.
+
+  - id: wt_004
+    category: weight
+    name: "5-inch freestyle ideal weight range"
+    description: >
+      The sweet spot for 5" freestyle 6S builds is 650-750g AUW. Builds
+      in this range offer the best balance of power, agility, durability,
+      and flight time. This is an informational note for builds that fall
+      within the ideal range.
+    severity: info
+    components: [frame, motor, fc, esc, battery, propeller]
+    check:
+      field_a: "build.all_up_weight_g"
+      operator: range
+      field_b: 650
+      field_b_high: 750
+    message_template: >
+      All-up weight ({field_a}g) is within the ideal 5" freestyle range
+      (650-750g). Good balance of performance and flight time.
+
+  # ---------------------------------------------------------------------------
+  # Thrust-to-weight ratio — critical minimum
+  # ---------------------------------------------------------------------------
+  - id: wt_005
+    category: weight
+    name: "Thrust-to-weight ratio minimum (critical)"
+    description: >
+      The thrust-to-weight ratio (TWR) must be at least 2:1 for any
+      multirotor to fly safely. TWR is calculated as total max thrust
+      (all motors at 100% with selected props) divided by all-up weight.
+      A TWR below 2:1 means the craft cannot hover below 50% throttle,
+      leaving almost no headroom for maneuvering, wind correction, or
+      altitude recovery. In practice a TWR below 2:1 makes the quad
+      nearly unflyable and dangerous — it cannot recover from dips or
+      gusts.
+    severity: critical
+    components: [motor, propeller, battery, frame]
+    check:
+      field_a: "calc:(motor.max_thrust_g * 4) / build.all_up_weight_g"
+      operator: gte
+      field_b: 2.0
+    message_template: >
+      Thrust-to-weight ratio ({actual}:1) is below the minimum safe
+      threshold of 2:1. The quad will struggle to maintain altitude and
+      cannot recover from disturbances. Reduce weight or increase thrust
+      (larger/more aggressive props, higher KV motors, higher voltage
+      battery).
+
+  - id: wt_006
+    category: weight
+    name: "Thrust-to-weight ratio minimum for adequate control"
+    description: >
+      A TWR of at least 3:1 is recommended for any FPV build to maintain
+      reasonable control authority. Below 3:1, the quad feels mushy, has
+      slow throttle response, and is unpleasant to fly even for cruising.
+      Long-range and cinematic builds may operate closer to 3:1 but should
+      not go below it.
+    severity: warning
+    components: [motor, propeller, battery, frame]
+    check:
+      field_a: "calc:(motor.max_thrust_g * 4) / build.all_up_weight_g"
+      operator: gte
+      field_b: 3.0
+    message_template: >
+      Thrust-to-weight ratio ({actual}:1) is below 3:1. The quad will fly
+      but throttle response and control authority will be poor. Consider
+      reducing weight or choosing a higher-thrust motor/prop combination.
+
+  # ---------------------------------------------------------------------------
+  # Thrust-to-weight ratio — freestyle performance
+  # ---------------------------------------------------------------------------
+  - id: wt_007
+    category: weight
+    name: "Freestyle thrust-to-weight ratio warning"
+    description: >
+      For freestyle flying, a TWR of at least 4:1 is recommended. Freestyle
+      maneuvers — power loops, split-S, inverted hangs, throttle punches —
+      require substantial thrust headroom. Below 4:1, the quad cannot
+      execute aggressive vertical maneuvers confidently and tricks feel
+      underpowered. Competitive freestyle pilots typically target 8:1 to
+      12:1.
+    severity: warning
+    components: [motor, propeller, battery, frame]
+    check:
+      field_a: "calc:(motor.max_thrust_g * 4) / build.all_up_weight_g"
+      operator: gte
+      field_b: 4.0
+    message_template: >
+      Thrust-to-weight ratio ({actual}:1) is below 4:1 for a freestyle
+      build. Aggressive maneuvers will feel underpowered. Target at least
+      4:1 for freestyle, ideally 6:1 or higher.
+
+  - id: wt_008
+    category: weight
+    name: "Freestyle thrust-to-weight ideal range"
+    description: >
+      The ideal TWR for freestyle is 6:1 to 12:1. Above 12:1, the quad
+      becomes twitchy and difficult to control smoothly, with diminishing
+      returns. Below 6:1, some freestyle maneuvers lack punch. This info
+      note confirms the build is in the performance sweet spot.
+    severity: info
+    components: [motor, propeller, battery, frame]
+    check:
+      field_a: "calc:(motor.max_thrust_g * 4) / build.all_up_weight_g"
+      operator: range
+      field_b: 6.0
+      field_b_high: 12.0
+    message_template: >
+      Thrust-to-weight ratio ({actual}:1) is in the ideal freestyle range
+      (6:1 to 12:1). Excellent power-to-weight for aggressive flying.
+
+  # ---------------------------------------------------------------------------
+  # Component weight sanity checks
+  # ---------------------------------------------------------------------------
+  - id: wt_009
+    category: weight
+    name: "Battery weight proportional to build"
+    description: >
+      The battery should typically be 25-40% of the all-up weight. If the
+      battery is less than 20% of AUW, flight times will be very short.
+      If over 45%, the build is likely too heavy or the battery is
+      oversized for the platform, hurting agility.
+    severity: warning
+    components: [battery, frame, motor]
+    check:
+      field_a: "calc:(battery.weight_g / build.all_up_weight_g) * 100"
+      operator: range
+      field_b: 20
+      field_b_high: 45
+    message_template: >
+      Battery is {actual}% of all-up weight. Ideal range is 25-40%.
+      Below 20% suggests very short flight times. Above 45% suggests
+      the battery is too heavy for this platform.
+
+  - id: wt_010
+    category: weight
+    name: "Frame weight appropriate for class"
+    description: >
+      Frame weight should be reasonable for its size class. A 5" frame
+      over 150g is on the heavy side (typical: 80-120g). A 3" frame over
+      80g is heavy (typical: 30-60g). Excessively heavy frames eat into
+      the weight budget and hurt agility with no proportional benefit to
+      durability beyond a point.
+    severity: info
+    components: [frame]
+    check:
+      field_a: "frame.weight_g"
+      operator: lte
+      field_b: "frame.class_max_typical_weight_g"
+    message_template: >
+      Frame weight ({field_a}g) is above the typical maximum for its
+      size class ({field_b}g). The frame is heavier than average, which
+      may impact overall build weight targets.
+
+  # ---------------------------------------------------------------------------
+  # Long-range specific weight targets
+  # ---------------------------------------------------------------------------
+  - id: wt_011
+    category: weight
+    name: "Long-range build AUW for efficiency"
+    description: >
+      Long-range 7" builds should target an AUW that allows efficient
+      cruise flight. Typical long-range 7" builds weigh 500-700g with
+      a 1300-1800mAh 6S pack. Builds over 800g significantly reduce
+      range due to increased power consumption at cruise. The efficiency
+      penalty scales roughly with the square of weight increase.
+    severity: warning
+    components: [frame, motor, fc, esc, battery, propeller]
+    check:
+      field_a: "build.all_up_weight_g"
+      operator: lte
+      field_b: 800
+    message_template: >
+      Long-range build AUW ({field_a}g) exceeds 800g. This will
+      significantly reduce achievable range. Target 500-700g for optimal
+      long-range efficiency.
+
+  - id: wt_012
+    category: weight
+    name: "Cinewhoop weight check"
+    description: >
+      Cinewhoop builds (ducted 3" typically) with GoPro-class cameras
+      should stay under 350g AUW for good flight characteristics and
+      safe indoor operation. Builds over 350g become unwieldy indoors
+      and the ducted props lose their efficiency advantage at higher
+      disc loading.
+    severity: warning
+    components: [frame, motor, fc, esc, battery, propeller]
+    check:
+      field_a: "build.all_up_weight_g"
+      operator: lte
+      field_b: 350
+    message_template: >
+      Cinewhoop AUW ({field_a}g) exceeds 350g. The build may handle
+      poorly indoors. Consider lighter components or a smaller action
+      camera.

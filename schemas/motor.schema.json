@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dronebuilder.local/schemas/motor.schema.json",
+  "title": "FPV Drone Motor",
+  "description": "Schema for an FPV drone brushless motor, including stator geometry, electrical ratings, and mechanical specifications.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the motor, typically a UUID or slug.",
+      "minLength": 1
+    },
+    "manufacturer": {
+      "type": "string",
+      "description": "Name of the motor manufacturer (e.g., T-Motor, Emax, BrotherHobby).",
+      "minLength": 1
+    },
+    "model": {
+      "type": "string",
+      "description": "Model name or number of the motor (e.g., Velox V2 2306).",
+      "minLength": 1
+    },
+    "stator_diameter_mm": {
+      "type": "number",
+      "description": "Stator diameter in millimeters. Common sizes are 14, 18, 22, 23, 28.",
+      "minimum": 5,
+      "maximum": 50
+    },
+    "stator_height_mm": {
+      "type": "number",
+      "description": "Stator height in millimeters. Common sizes are 04, 06, 07, 08.",
+      "minimum": 2,
+      "maximum": 20
+    },
+    "kv": {
+      "type": "integer",
+      "description": "KV rating of the motor (RPM per volt under no load). Lower KV suits higher voltage; higher KV suits lower voltage.",
+      "minimum": 100,
+      "maximum": 10000
+    },
+    "max_current_a": {
+      "type": "number",
+      "description": "Maximum continuous current draw in amps at full throttle with the specified prop.",
+      "minimum": 0,
+      "maximum": 200
+    },
+    "max_thrust_g": {
+      "type": "number",
+      "description": "Maximum thrust in grams produced at full throttle with the specified propeller and voltage.",
+      "minimum": 0,
+      "maximum": 5000
+    },
+    "weight_g": {
+      "type": "number",
+      "description": "Weight of the motor in grams, excluding wires and mounting hardware.",
+      "minimum": 1,
+      "maximum": 200
+    },
+    "shaft_type": {
+      "type": "string",
+      "description": "Motor shaft mounting type that determines compatible propellers.",
+      "enum": ["M5", "T-mount"]
+    },
+    "voltage_range": {
+      "type": "object",
+      "description": "Supported LiPo cell count range for the motor.",
+      "properties": {
+        "min_cells": {
+          "type": "integer",
+          "description": "Minimum number of LiPo cells (e.g., 3 for 3S).",
+          "minimum": 1,
+          "maximum": 14
+        },
+        "max_cells": {
+          "type": "integer",
+          "description": "Maximum number of LiPo cells (e.g., 6 for 6S).",
+          "minimum": 1,
+          "maximum": 14
+        }
+      },
+      "required": ["min_cells", "max_cells"],
+      "additionalProperties": false
+    },
+    "mounting_pattern_mm": {
+      "type": "string",
+      "description": "Motor mounting hole pattern in millimeters, measured between bolt holes.",
+      "enum": ["16x16", "19x19"]
+    },
+    "price_usd": {
+      "type": "number",
+      "description": "Price in US dollars for a single motor unit.",
+      "minimum": 0
+    },
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Product page URL for the motor."
+    }
+  },
+  "required": [
+    "id",
+    "manufacturer",
+    "model",
+    "stator_diameter_mm",
+    "stator_height_mm",
+    "kv",
+    "max_current_a",
+    "max_thrust_g",
+    "weight_g",
+    "shaft_type",
+    "voltage_range",
+    "mounting_pattern_mm",
+    "price_usd",
+    "url"
+  ],
+  "additionalProperties": false
+}

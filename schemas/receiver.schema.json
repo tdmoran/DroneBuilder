@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dronebuilder.local/schemas/receiver.schema.json",
+  "title": "FPV Drone Receiver",
+  "description": "Schema for a radio control receiver used in FPV drones. Covers protocol, frequency band, serial protocol, and antenna configuration.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the receiver, typically a UUID or slug.",
+      "minLength": 1
+    },
+    "manufacturer": {
+      "type": "string",
+      "description": "Name of the receiver manufacturer (e.g., RadioMaster, TBS, ImmersionRC, BetaFPV).",
+      "minLength": 1
+    },
+    "model": {
+      "type": "string",
+      "description": "Model name of the receiver (e.g., RP1, Crossfire Nano, EP2).",
+      "minLength": 1
+    },
+    "protocol": {
+      "type": "string",
+      "description": "Radio link protocol. 'elrs' is ExpressLRS (open-source, low latency); 'crossfire' is TBS Crossfire (long range); 'tracer' is TBS Tracer (low latency); 'frsky' is FrSky ACCESS/ACCST; 'dji' is DJI's proprietary link.",
+      "enum": ["elrs", "crossfire", "tracer", "frsky", "dji"]
+    },
+    "frequency": {
+      "type": "string",
+      "description": "Operating frequency band. '2.4ghz' offers lower latency and is most common; '915mhz' provides greater range and penetration (Americas); '868mhz' is the EU equivalent of 915mhz.",
+      "enum": ["2.4ghz", "915mhz", "868mhz"]
+    },
+    "uart_protocol": {
+      "type": "string",
+      "description": "Serial protocol used to communicate with the flight controller over UART. 'crsf' is used by ELRS, Crossfire, and Tracer; 'sbus' is used by FrSky; 'ibus' is used by FlySky; 'dji_sbus' is DJI's variant of SBUS.",
+      "enum": ["crsf", "sbus", "ibus", "dji_sbus"]
+    },
+    "antenna_count": {
+      "type": "integer",
+      "description": "Number of antennas on the receiver. Dual antennas (2) provide diversity reception for more reliable link quality.",
+      "minimum": 1,
+      "maximum": 4
+    },
+    "weight_g": {
+      "type": "number",
+      "description": "Weight of the receiver in grams, including antenna(s).",
+      "minimum": 0.1,
+      "maximum": 50
+    },
+    "price_usd": {
+      "type": "number",
+      "description": "Price in US dollars for the receiver unit.",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "id",
+    "manufacturer",
+    "model",
+    "protocol",
+    "frequency",
+    "uart_protocol",
+    "antenna_count",
+    "weight_g",
+    "price_usd"
+  ],
+  "additionalProperties": false
+}

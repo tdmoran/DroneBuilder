@@ -1,0 +1,12 @@
+{
+  "name": "Budget 5inch Freestyle",
+  "drone_class": "5inch_freestyle",
+  "motor": "motor_emax_eco2_2306_1900kv",
+  "esc": "esc_speedybee_bls_50a_4in1",
+  "fc": "fc_speedybee_f405_v4",
+  "frame": "frame_tbs_source_one_v5",
+  "propeller": "prop_gemfan_51466_hurricane",
+  "battery": "battery_cnhl_ministar_1300_6s_100c",
+  "vtx": "vtx_dji_o3_air_unit",
+  "receiver": "rx_betafpv_elrs_lite_2_4ghz"
+}

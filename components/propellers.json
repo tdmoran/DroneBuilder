@@ -1,0 +1,255 @@
+[
+  {
+    "id": "prop_gemfan_51466_hurricane",
+    "manufacturer": "Gemfan",
+    "model": "Hurricane 51466",
+    "specs": {
+      "diameter_inches": 5.1,
+      "pitch_inches": 4.66,
+      "blades": 3,
+      "material": "Polycarbonate",
+      "shaft_diameter_mm": 5,
+      "hub_type": "T-Mount (M5)",
+      "color_options": ["Clear", "Black", "Blue", "Red", "Yellow"],
+      "thrust_class": "High",
+      "efficiency_class": "Medium",
+      "noise_class": "Medium"
+    },
+    "weight_g": 4.5,
+    "price_usd": 3.49,
+    "category": "5inch",
+    "units": "Set of 4 (2CW + 2CCW)"
+  },
+  {
+    "id": "prop_gemfan_51433",
+    "manufacturer": "Gemfan",
+    "model": "Hurricane 51433",
+    "specs": {
+      "diameter_inches": 5.1,
+      "pitch_inches": 4.33,
+      "blades": 3,
+      "material": "Polycarbonate",
+      "shaft_diameter_mm": 5,
+      "hub_type": "T-Mount (M5)",
+      "color_options": ["Clear", "Black", "Blue", "Red"],
+      "thrust_class": "Medium-High",
+      "efficiency_class": "High",
+      "noise_class": "Low"
+    },
+    "weight_g": 4.0,
+    "price_usd": 3.49,
+    "category": "5inch",
+    "units": "Set of 4 (2CW + 2CCW)"
+  },
+  {
+    "id": "prop_hqprop_5_1x3_1x3_v1s",
+    "manufacturer": "HQProp",
+    "model": "5.1x3.1x3 V1S",
+    "specs": {
+      "diameter_inches": 5.1,
+      "pitch_inches": 3.1,
+      "blades": 3,
+      "material": "Poly Carbonate",
+      "shaft_diameter_mm": 5,
+      "hub_type": "T-Mount (M5)",
+      "color_options": ["Clear Grey", "Black", "Light Blue", "Light Green"],
+      "thrust_class": "Medium",
+      "efficiency_class": "High",
+      "noise_class": "Low"
+    },
+    "weight_g": 3.7,
+    "price_usd": 3.29,
+    "category": "5inch",
+    "units": "Set of 4 (2CW + 2CCW)"
+  },
+  {
+    "id": "prop_hqprop_ethix_s5",
+    "manufacturer": "HQProp",
+    "model": "Ethix S5 5x4x3 Light Grey",
+    "specs": {
+      "diameter_inches": 5.0,
+      "pitch_inches": 4.0,
+      "blades": 3,
+      "material": "Poly Carbonate",
+      "shaft_diameter_mm": 5,
+      "hub_type": "T-Mount (M5)",
+      "color_options": ["Light Grey"],
+      "thrust_class": "Medium-High",
+      "efficiency_class": "Medium-High",
+      "noise_class": "Medium",
+      "designer": "Ethix / Mr. Steele"
+    },
+    "weight_g": 4.2,
+    "price_usd": 3.99,
+    "category": "5inch",
+    "units": "Set of 4 (2CW + 2CCW)"
+  },
+  {
+    "id": "prop_dal_cyclone_t5047c",
+    "manufacturer": "DAL",
+    "model": "Cyclone T5047C",
+    "specs": {
+      "diameter_inches": 5.0,
+      "pitch_inches": 4.7,
+      "blades": 3,
+      "material": "Polycarbonate",
+      "shaft_diameter_mm": 5,
+      "hub_type": "T-Mount (M5)",
+      "color_options": ["Crystal Red", "Crystal Blue", "Crystal Green", "Black"],
+      "thrust_class": "High",
+      "efficiency_class": "Medium",
+      "noise_class": "Medium-High"
+    },
+    "weight_g": 4.8,
+    "price_usd": 2.99,
+    "category": "5inch",
+    "units": "Set of 4 (2CW + 2CCW)"
+  },
+  {
+    "id": "prop_emax_avan_5x2_8",
+    "manufacturer": "Emax",
+    "model": "Avan 5x2.8x3",
+    "specs": {
+      "diameter_inches": 5.0,
+      "pitch_inches": 2.8,
+      "blades": 3,
+      "material": "Polycarbonate",
+      "shaft_diameter_mm": 5,
+      "hub_type": "T-Mount (M5)",
+      "color_options": ["Clear", "Black", "Red"],
+      "thrust_class": "Low-Medium",
+      "efficiency_class": "Very High",
+      "noise_class": "Very Low"
+    },
+    "weight_g": 3.3,
+    "price_usd": 2.49,
+    "category": "5inch",
+    "units": "Set of 4 (2CW + 2CCW)"
+  },
+  {
+    "id": "prop_gemfan_3016_2blade",
+    "manufacturer": "Gemfan",
+    "model": "3016 2-Blade",
+    "specs": {
+      "diameter_inches": 3.0,
+      "pitch_inches": 1.6,
+      "blades": 2,
+      "material": "Polycarbonate",
+      "shaft_diameter_mm": 1.5,
+      "hub_type": "Press-fit 1.5mm",
+      "color_options": ["Clear", "Black", "Red"],
+      "thrust_class": "Low",
+      "efficiency_class": "Very High",
+      "noise_class": "Very Low"
+    },
+    "weight_g": 0.9,
+    "price_usd": 1.99,
+    "category": "3inch",
+    "units": "Set of 4 (2CW + 2CCW)"
+  },
+  {
+    "id": "prop_hqprop_3x1_5x3",
+    "manufacturer": "HQProp",
+    "model": "3x1.5x3",
+    "specs": {
+      "diameter_inches": 3.0,
+      "pitch_inches": 1.5,
+      "blades": 3,
+      "material": "Polycarbonate",
+      "shaft_diameter_mm": 1.5,
+      "hub_type": "Press-fit 1.5mm / T-Mount (M5 adapter)",
+      "color_options": ["Clear", "Black", "Light Blue"],
+      "thrust_class": "Low-Medium",
+      "efficiency_class": "High",
+      "noise_class": "Low"
+    },
+    "weight_g": 1.1,
+    "price_usd": 2.29,
+    "category": "3inch",
+    "units": "Set of 4 (2CW + 2CCW)"
+  },
+  {
+    "id": "prop_gemfan_3018_3blade",
+    "manufacturer": "Gemfan",
+    "model": "Hurricane 3018 3-Blade",
+    "specs": {
+      "diameter_inches": 3.0,
+      "pitch_inches": 1.8,
+      "blades": 3,
+      "material": "Polycarbonate",
+      "shaft_diameter_mm": 1.5,
+      "hub_type": "Press-fit 1.5mm",
+      "color_options": ["Clear", "Black"],
+      "thrust_class": "Medium",
+      "efficiency_class": "Medium-High",
+      "noise_class": "Low-Medium"
+    },
+    "weight_g": 1.2,
+    "price_usd": 2.29,
+    "category": "3inch",
+    "units": "Set of 4 (2CW + 2CCW)"
+  },
+  {
+    "id": "prop_gemfan_40mm_3blade_whoop",
+    "manufacturer": "Gemfan",
+    "model": "40mm 3-Blade Whoop",
+    "specs": {
+      "diameter_inches": 1.6,
+      "pitch_inches": 1.0,
+      "blades": 3,
+      "material": "Polycarbonate",
+      "shaft_diameter_mm": 1.0,
+      "hub_type": "Press-fit 1.0mm",
+      "color_options": ["Clear", "Black", "Red", "Blue"],
+      "thrust_class": "Very Low",
+      "efficiency_class": "High",
+      "noise_class": "Very Low"
+    },
+    "weight_g": 0.4,
+    "price_usd": 1.49,
+    "category": "whoop",
+    "units": "Set of 4 (2CW + 2CCW)"
+  },
+  {
+    "id": "prop_hqprop_31mm_3blade_whoop",
+    "manufacturer": "HQProp",
+    "model": "31mm 3-Blade Whoop",
+    "specs": {
+      "diameter_inches": 1.2,
+      "pitch_inches": 0.8,
+      "blades": 3,
+      "material": "Polycarbonate",
+      "shaft_diameter_mm": 1.0,
+      "hub_type": "Press-fit 1.0mm",
+      "color_options": ["Clear", "Black"],
+      "thrust_class": "Very Low",
+      "efficiency_class": "High",
+      "noise_class": "Very Low"
+    },
+    "weight_g": 0.3,
+    "price_usd": 1.29,
+    "category": "whoop",
+    "units": "Set of 4 (2CW + 2CCW)"
+  },
+  {
+    "id": "prop_gemfan_hurricane_7035",
+    "manufacturer": "Gemfan",
+    "model": "Hurricane 7035 2-Blade",
+    "specs": {
+      "diameter_inches": 7.0,
+      "pitch_inches": 3.5,
+      "blades": 2,
+      "material": "Polycarbonate",
+      "shaft_diameter_mm": 5,
+      "hub_type": "T-Mount (M5)",
+      "color_options": ["Clear", "Black"],
+      "thrust_class": "High",
+      "efficiency_class": "Very High",
+      "noise_class": "Low"
+    },
+    "weight_g": 5.8,
+    "price_usd": 3.99,
+    "category": "7inch",
+    "units": "Set of 4 (2CW + 2CCW)"
+  }
+]

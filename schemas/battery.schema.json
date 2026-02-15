@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dronebuilder.local/schemas/battery.schema.json",
+  "title": "FPV Drone Battery (LiPo)",
+  "description": "Schema for a LiPo battery pack used in FPV drones, covering cell configuration, capacity, discharge rating, connector type, and physical dimensions.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the battery, typically a UUID or slug.",
+      "minLength": 1
+    },
+    "manufacturer": {
+      "type": "string",
+      "description": "Name of the battery manufacturer (e.g., Tattu, CNHL, GNB).",
+      "minLength": 1
+    },
+    "model": {
+      "type": "string",
+      "description": "Model name of the battery (e.g., R-Line V4, MiniStar).",
+      "minLength": 1
+    },
+    "cell_count": {
+      "type": "integer",
+      "description": "Number of series-connected LiPo cells (e.g., 4 for 4S = 14.8V nominal, 6 for 6S = 22.2V nominal).",
+      "minimum": 1,
+      "maximum": 14
+    },
+    "capacity_mah": {
+      "type": "integer",
+      "description": "Battery capacity in milliamp-hours. Common FPV sizes: 450, 650, 850, 1100, 1300, 1550, 2200.",
+      "minimum": 50,
+      "maximum": 30000
+    },
+    "c_rating": {
+      "type": "number",
+      "description": "Continuous discharge C-rating. Multiply by capacity (in Ah) to get max continuous current. Higher is better for high-throttle flying.",
+      "minimum": 1,
+      "maximum": 250
+    },
+    "voltage_nominal": {
+      "type": "number",
+      "description": "Nominal voltage of the fully assembled pack in volts (3.7V per cell x cell_count).",
+      "minimum": 3.0,
+      "maximum": 60.0
+    },
+    "voltage_max": {
+      "type": "number",
+      "description": "Maximum (fully charged) voltage of the pack in volts (4.2V per cell x cell_count).",
+      "minimum": 4.0,
+      "maximum": 60.0
+    },
+    "connector": {
+      "type": "string",
+      "description": "Main discharge connector type. Must match the drone's power lead. XT30 for micro/lightweight; XT60 for 5-inch; XT90 for 7-inch and heavy builds.",
+      "enum": ["XT30", "XT60", "XT90"]
+    },
+    "weight_g": {
+      "type": "number",
+      "description": "Total weight of the battery pack in grams, including wires and connector.",
+      "minimum": 10,
+      "maximum": 2000
+    },
+    "dimensions_mm": {
+      "type": "object",
+      "description": "Physical dimensions of the battery pack in millimeters. Used to verify the battery fits the frame's battery bay.",
+      "properties": {
+        "length": {
+          "type": "number",
+          "description": "Length of the battery pack in millimeters.",
+          "minimum": 10,
+          "maximum": 300
+        },
+        "width": {
+          "type": "number",
+          "description": "Width of the battery pack in millimeters.",
+          "minimum": 10,
+          "maximum": 200
+        },
+        "height": {
+          "type": "number",
+          "description": "Height (thickness) of the battery pack in millimeters.",
+          "minimum": 5,
+          "maximum": 100
+        }
+      },
+      "required": ["length", "width", "height"],
+      "additionalProperties": false
+    },
+    "price_usd": {
+      "type": "number",
+      "description": "Price in US dollars for a single battery pack.",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "id",
+    "manufacturer",
+    "model",
+    "cell_count",
+    "capacity_mah",
+    "c_rating",
+    "voltage_nominal",
+    "voltage_max",
+    "connector",
+    "weight_g",
+    "dimensions_mm",
+    "price_usd"
+  ],
+  "additionalProperties": false
+}

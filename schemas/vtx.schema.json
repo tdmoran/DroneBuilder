@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dronebuilder.local/schemas/vtx.schema.json",
+  "title": "FPV Drone Video Transmitter (VTX)",
+  "description": "Schema for a video transmitter used in FPV drones, covering analog and digital systems, power output levels, and camera format compatibility.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the VTX, typically a UUID or slug.",
+      "minLength": 1
+    },
+    "manufacturer": {
+      "type": "string",
+      "description": "Name of the VTX manufacturer (e.g., DJI, HDZero, Caddx, Rush).",
+      "minLength": 1
+    },
+    "model": {
+      "type": "string",
+      "description": "Model name of the VTX (e.g., O3 Air Unit, Race V3, Whoop Lite).",
+      "minLength": 1
+    },
+    "system": {
+      "type": "string",
+      "description": "Video system type. 'analog' is traditional analog FPV; 'dji_o3' and 'dji_o4' are DJI digital systems; 'hdzero' is the low-latency digital system; 'walksnail' is the Caddx/Walksnail digital system.",
+      "enum": ["analog", "dji_o3", "dji_o4", "hdzero", "walksnail"]
+    },
+    "power_levels_mw": {
+      "type": "array",
+      "description": "Available transmit power levels in milliwatts. Ordered from lowest to highest. Higher power provides greater range but consumes more energy and may have regulatory restrictions.",
+      "items": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 3000
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "input_voltage_min": {
+      "type": "number",
+      "description": "Minimum input voltage in volts that the VTX can accept.",
+      "minimum": 2.0,
+      "maximum": 60.0
+    },
+    "input_voltage_max": {
+      "type": "number",
+      "description": "Maximum input voltage in volts that the VTX can accept.",
+      "minimum": 3.0,
+      "maximum": 60.0
+    },
+    "weight_g": {
+      "type": "number",
+      "description": "Weight of the VTX module in grams, including antenna pigtail if permanently attached.",
+      "minimum": 0.5,
+      "maximum": 100
+    },
+    "camera_format": {
+      "type": "string",
+      "description": "Compatible camera form factor. 'micro_19mm' is the standard 19mm wide format; 'nano_14mm' is for smaller builds; 'standard_28mm' is full-size; 'integrated' means the camera is built into the VTX unit.",
+      "enum": ["micro_19mm", "nano_14mm", "standard_28mm", "integrated"]
+    },
+    "price_usd": {
+      "type": "number",
+      "description": "Price in US dollars for the VTX unit (camera may or may not be included depending on the product).",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "id",
+    "manufacturer",
+    "model",
+    "system",
+    "power_levels_mw",
+    "input_voltage_min",
+    "input_voltage_max",
+    "weight_g",
+    "camera_format",
+    "price_usd"
+  ],
+  "additionalProperties": false
+}

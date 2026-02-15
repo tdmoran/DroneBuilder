@@ -1,0 +1,308 @@
+# DroneBuilder Mechanical Constraints
+# Rules governing physical fit, mounting patterns, and dimensional compatibility.
+#
+# Mechanical mismatches are caught before purchase, saving builders from the
+# frustrating experience of receiving parts that physically do not fit together.
+
+schema_version: "1.0.0"
+category: mechanical
+
+rules:
+
+  # ---------------------------------------------------------------------------
+  # FC <-> Frame stack mounting
+  # ---------------------------------------------------------------------------
+  - id: mech_001
+    category: mechanical
+    name: "FC mounting pattern matches frame stack"
+    description: >
+      The flight controller's mounting hole pattern must match the frame's
+      stack mounting pattern. The two common standards are 30.5x30.5mm
+      (full-size, used on 5" and larger) and 20x20mm (used on 3" and smaller
+      builds, also as secondary mount on many 5" frames). A 25.5x25.5mm
+      pattern exists on some Whoop-class frames. If patterns don't match,
+      the FC cannot be mechanically secured to the frame without adapters,
+      which add weight and introduce vibration.
+    severity: critical
+    components: [fc, frame]
+    check:
+      field_a: "fc.mounting_pattern_mm"
+      operator: in
+      field_b: "frame.stack_mounting_patterns_mm"
+    message_template: >
+      FC mounting pattern ({field_a}mm) does not match any of the frame's
+      stack mounting patterns ({field_b}). The FC will not bolt into this
+      frame without a mounting adapter.
+
+  - id: mech_002
+    category: mechanical
+    name: "FC board dimensions fit within frame stack area"
+    description: >
+      Even when mounting holes align, the FC PCB must physically fit within
+      the frame's stack cavity. Some frames have tight canopies or side
+      plates that restrict PCB width. A 36x36mm FC board with 30.5mm
+      mounting may not fit a frame with a narrow stack channel.
+    severity: warning
+    components: [fc, frame]
+    check:
+      field_a: "fc.board_width_mm"
+      operator: lte
+      field_b: "frame.stack_max_width_mm"
+    message_template: >
+      FC board width ({field_a}mm) may exceed the frame's stack cavity
+      ({field_b}mm). The board might not fit without modification.
+
+  # ---------------------------------------------------------------------------
+  # ESC <-> Frame stack mounting (4-in-1)
+  # ---------------------------------------------------------------------------
+  - id: mech_003
+    category: mechanical
+    name: "4-in-1 ESC mounting pattern matches frame stack"
+    description: >
+      For 4-in-1 (all-in-one) ESC boards, the mounting pattern must match
+      the frame's stack mounting pattern, just like the FC. The ESC typically
+      sits below the FC in the stack with shared standoffs. If the ESC
+      pattern doesn't match, the stack cannot be assembled. This rule only
+      applies when esc.form_factor is "4in1" or "aio".
+    severity: critical
+    components: [esc, frame]
+    check:
+      field_a: "esc.mounting_pattern_mm"
+      operator: in
+      field_b: "frame.stack_mounting_patterns_mm"
+    message_template: >
+      4-in-1 ESC mounting pattern ({field_a}mm) does not match the frame's
+      stack mounting patterns ({field_b}). The ESC cannot be mounted in this
+      frame's stack.
+
+  - id: mech_004
+    category: mechanical
+    name: "ESC form factor compatible with frame ESC mounting"
+    description: >
+      The frame's design determines whether it accepts a 4-in-1 stack ESC,
+      individual per-arm ESCs, or either. A frame designed exclusively for
+      individual ESCs may lack stack space, while a frame designed for 4-in-1
+      may not have arm channels for individual ESC pads. Many modern frames
+      support both, but dedicated race frames often only support one style.
+    severity: critical
+    components: [esc, frame]
+    check:
+      field_a: "esc.form_factor"
+      operator: in
+      field_b: "frame.supported_esc_form_factors"
+    message_template: >
+      ESC form factor "{field_a}" is not supported by this frame
+      (supported: {field_b}). Choose an ESC form factor the frame is
+      designed for.
+
+  # ---------------------------------------------------------------------------
+  # Motor <-> Frame motor mount
+  # ---------------------------------------------------------------------------
+  - id: mech_005
+    category: mechanical
+    name: "Motor mounting pattern matches frame motor mounts"
+    description: >
+      FPV motors use standardized mounting hole patterns based on stator
+      diameter. Common patterns: 16x16mm (for 22xx and 23xx motors),
+      16x19mm (some 23xx), 12x12mm (for 14xx motors on 3" builds),
+      9x9mm (for 11xx motors on micro builds). The frame's arm motor
+      mounts must have holes matching the motor's bolt pattern.
+    severity: critical
+    components: [motor, frame]
+    check:
+      field_a: "motor.mounting_pattern_mm"
+      operator: in
+      field_b: "frame.motor_mounting_patterns_mm"
+    message_template: >
+      Motor mounting pattern ({field_a}mm) does not match the frame's motor
+      mount holes ({field_b}). The motors cannot be bolted to the arms.
+
+  - id: mech_006
+    category: mechanical
+    name: "Motor stator size appropriate for frame class"
+    description: >
+      Motor stator diameter and height should match the frame's intended
+      build class. A 2806.5 motor on a 3" frame is absurdly heavy and
+      won't fit the arm width, while a 1103 motor on a 7" long-range
+      frame won't produce remotely enough thrust. This rule checks that
+      the motor stator diameter falls within the frame's recommended
+      range.
+    severity: warning
+    components: [motor, frame]
+    check:
+      field_a: "motor.stator_diameter_mm"
+      operator: range
+      field_b: "frame.recommended_motor_stator_min_mm"
+      field_b_high: "frame.recommended_motor_stator_max_mm"
+    message_template: >
+      Motor stator diameter ({field_a}mm) is outside the recommended range
+      for this frame ({field_b}mm to {field_b_high}mm). The motor may be
+      too large or too small for the intended build class.
+
+  - id: mech_007
+    category: mechanical
+    name: "Motor shaft length clears frame arm thickness"
+    description: >
+      The motor shaft must be long enough to pass through the frame arm
+      plus the prop hub and secure with a lock nut. If the shaft is too
+      short, the prop cannot be properly retained and may eject in flight.
+      Most motors have 5mm shafts that accommodate standard arm thickness
+      (4-5mm carbon) plus prop hub (~3mm).
+    severity: warning
+    components: [motor, frame]
+    check:
+      field_a: "motor.shaft_length_mm"
+      operator: gte
+      field_b: "calc:frame.arm_thickness_mm + 3"
+    message_template: >
+      Motor shaft length ({field_a}mm) may be too short for the frame arm
+      thickness ({frame.arm_thickness_mm}mm) plus prop hub. The prop may
+      not seat securely.
+
+  # ---------------------------------------------------------------------------
+  # Propeller <-> Frame size
+  # ---------------------------------------------------------------------------
+  - id: mech_008
+    category: mechanical
+    name: "Prop diameter within frame max prop size"
+    description: >
+      The propeller diameter must not exceed the frame's maximum supported
+      prop size. Oversized props will collide with adjacent props or the
+      frame arms during rotation, causing instant destruction. The frame
+      manufacturer specifies max prop size based on motor-to-motor geometry.
+      Common pairings: 5" frame = 5" or 5.1" max, 3" frame = 3" max,
+      7" frame = 7" max.
+    severity: critical
+    components: [propeller, frame]
+    check:
+      field_a: "propeller.diameter_in"
+      operator: lte
+      field_b: "frame.max_prop_size_in"
+    message_template: >
+      Propeller diameter ({field_a}") exceeds frame max prop size ({field_b}").
+      The props will collide with each other or the frame arms.
+
+  - id: mech_009
+    category: mechanical
+    name: "Prop diameter not excessively undersized for frame"
+    description: >
+      Running props significantly smaller than the frame's design intent
+      wastes the frame's potential and reduces efficiency. A 4" prop on a
+      5" frame works but sacrifices thrust and flight time. This is a
+      warning, not a hard block — sometimes smaller props are used
+      intentionally for indoor flying or noise reduction.
+    severity: info
+    components: [propeller, frame]
+    check:
+      field_a: "propeller.diameter_in"
+      operator: gte
+      field_b: "calc:frame.max_prop_size_in - 1.0"
+    message_template: >
+      Propeller diameter ({field_a}") is more than 1" smaller than the
+      frame's max prop size ({frame.max_prop_size_in}"). You may be
+      leaving performance on the table. This is fine if intentional.
+
+  # ---------------------------------------------------------------------------
+  # Propeller <-> Motor shaft compatibility
+  # ---------------------------------------------------------------------------
+  - id: mech_010
+    category: mechanical
+    name: "Prop shaft type matches motor shaft"
+    description: >
+      The propeller's center bore must match the motor's shaft type. Common
+      shaft types: M5 threaded (most 5" motors, prop retained by lock nut),
+      T-mount / 1.5mm (micro motors, press-fit), 5mm keyed (some cinematic
+      motors). A mismatch means the prop physically cannot attach to the
+      motor. Some props ship with adapter rings but the base shaft type
+      must still be compatible.
+    severity: critical
+    components: [propeller, motor]
+    check:
+      field_a: "propeller.shaft_type"
+      operator: eq
+      field_b: "motor.shaft_type"
+    message_template: >
+      Propeller shaft type ({field_a}) does not match motor shaft type
+      ({field_b}). The prop cannot mount on this motor.
+
+  - id: mech_011
+    category: mechanical
+    name: "Prop shaft diameter matches motor shaft diameter"
+    description: >
+      Beyond shaft type, the actual shaft diameter must match. A prop with
+      a 5mm bore on a 1.5mm shaft will wobble dangerously. Most 5" setups
+      use 5mm (M5), most 3" use 5mm or 1.5mm, and most Whoop/micro builds
+      use 1mm or 1.5mm T-mount.
+    severity: critical
+    components: [propeller, motor]
+    check:
+      field_a: "propeller.shaft_diameter_mm"
+      operator: eq
+      field_b: "motor.shaft_diameter_mm"
+    message_template: >
+      Propeller shaft bore ({field_a}mm) does not match motor shaft diameter
+      ({field_b}mm). The prop will not fit on the motor shaft.
+
+  # ---------------------------------------------------------------------------
+  # Camera <-> Frame compatibility
+  # ---------------------------------------------------------------------------
+  - id: mech_012
+    category: mechanical
+    name: "Camera form factor fits frame camera mount"
+    description: >
+      FPV cameras come in standard form factors: Full size (28mm wide),
+      Mini (21mm wide), Micro (19mm wide), Nano (14mm wide). The frame's
+      camera mount is designed for a specific size range. A full-size
+      camera in a micro frame simply won't fit, while a nano camera in a
+      full-size mount will rattle without a 3D-printed adapter.
+    severity: warning
+    components: [camera, frame]
+    check:
+      field_a: "camera.form_factor"
+      operator: in
+      field_b: "frame.supported_camera_sizes"
+    message_template: >
+      Camera form factor ({field_a}) is not in the frame's supported camera
+      sizes ({field_b}). The camera may not fit the frame's camera mount
+      without an adapter.
+
+  - id: mech_013
+    category: mechanical
+    name: "Camera width within frame camera mount width"
+    description: >
+      As a secondary dimensional check, the camera's physical width in mm
+      must be at or below the frame's camera mount opening. Even within a
+      named size class, exact dimensions can vary between manufacturers.
+    severity: warning
+    components: [camera, frame]
+    check:
+      field_a: "camera.width_mm"
+      operator: lte
+      field_b: "frame.camera_mount_max_width_mm"
+    message_template: >
+      Camera width ({field_a}mm) exceeds frame camera mount opening
+      ({field_b}mm). The camera may need to be filed down or the mount
+      modified.
+
+  # ---------------------------------------------------------------------------
+  # Frame <-> Stack height clearance
+  # ---------------------------------------------------------------------------
+  - id: mech_014
+    category: mechanical
+    name: "Total stack height fits within frame clearance"
+    description: >
+      The combined height of all stacked components (ESC + FC + spacers +
+      VTX if stacked) must fit within the frame's available vertical
+      stack clearance. This is the distance between the bottom plate and
+      the top plate (or canopy). Standard standoff sets provide 20-25mm
+      of stack clearance, but low-profile frames may offer less.
+    severity: warning
+    components: [fc, esc, frame]
+    check:
+      field_a: "calc:esc.board_height_mm + fc.board_height_mm + build.standoff_spacer_mm"
+      operator: lte
+      field_b: "frame.stack_clearance_mm"
+    message_template: >
+      Total stack height ({actual}mm) may exceed frame stack clearance
+      ({field_b}mm). Components may press against the top plate or not
+      fit under the canopy.

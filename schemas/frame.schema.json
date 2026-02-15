@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dronebuilder.local/schemas/frame.schema.json",
+  "title": "FPV Drone Frame",
+  "description": "Schema for an FPV drone frame, including geometry, material, mounting compatibility, and prop clearance specifications.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the frame, typically a UUID or slug.",
+      "minLength": 1
+    },
+    "manufacturer": {
+      "type": "string",
+      "description": "Name of the frame manufacturer (e.g., ImpulseRC, TBS, iFlight).",
+      "minLength": 1
+    },
+    "model": {
+      "type": "string",
+      "description": "Model name of the frame (e.g., Apex HD, Source One V5).",
+      "minLength": 1
+    },
+    "prop_size_inches": {
+      "type": "number",
+      "description": "Nominal propeller size this frame is designed for, in inches (e.g., 5, 3.5, 7).",
+      "minimum": 1,
+      "maximum": 20
+    },
+    "arm_thickness_mm": {
+      "type": "number",
+      "description": "Thickness of each arm in millimeters. Thicker arms increase durability but add weight.",
+      "minimum": 1,
+      "maximum": 15
+    },
+    "material": {
+      "type": "string",
+      "description": "Primary material of the frame. Carbon fiber is standard for racing and freestyle; TPU is used for ducted micro frames.",
+      "enum": ["carbon_fiber", "aluminum", "tpu"]
+    },
+    "topology": {
+      "type": "string",
+      "description": "Arm layout geometry. 'true_x' has equal arm angles; 'stretch_x' pushes front motors forward for less prop wash in forward flight; 'deadcat' angles rear arms inward to keep props out of camera view; 'h_frame' uses parallel arm plates.",
+      "enum": ["true_x", "stretch_x", "deadcat", "h_frame"]
+    },
+    "stack_mounting_mm": {
+      "type": "string",
+      "description": "Mounting hole pattern for the FC/ESC stack. Must match the FC and ESC mounting patterns.",
+      "enum": ["20x20", "25.5x25.5", "30.5x30.5"]
+    },
+    "motor_mounting_mm": {
+      "type": "string",
+      "description": "Motor mounting hole pattern at each arm tip. Must match the motor mounting pattern (e.g., 16x16, 19x19).",
+      "enum": ["16x16", "19x19"]
+    },
+    "weight_g": {
+      "type": "number",
+      "description": "Dry weight of the frame kit in grams, including all carbon parts and supplied hardware.",
+      "minimum": 5,
+      "maximum": 1000
+    },
+    "max_prop_inches": {
+      "type": "number",
+      "description": "Maximum propeller diameter in inches that the frame can physically accommodate without arm-to-prop interference.",
+      "minimum": 1,
+      "maximum": 20
+    },
+    "price_usd": {
+      "type": "number",
+      "description": "Price in US dollars for the complete frame kit.",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "id",
+    "manufacturer",
+    "model",
+    "prop_size_inches",
+    "arm_thickness_mm",
+    "material",
+    "topology",
+    "stack_mounting_mm",
+    "motor_mounting_mm",
+    "weight_g",
+    "max_prop_inches",
+    "price_usd"
+  ],
+  "additionalProperties": false
+}

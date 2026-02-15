@@ -1,0 +1,278 @@
+# DroneBuilder Electrical Constraints
+# Rules governing voltage, current, and power compatibility between components.
+#
+# These rules prevent smoke, fire, and component destruction. Most are severity
+# "critical" because electrical mismatches cause immediate hardware failure.
+
+schema_version: "1.0.0"
+category: electrical
+
+rules:
+
+  # ---------------------------------------------------------------------------
+  # Battery <-> ESC voltage compatibility
+  # ---------------------------------------------------------------------------
+  - id: elec_001
+    category: electrical
+    name: "Battery voltage within ESC minimum S-rating"
+    description: >
+      The battery cell count must meet or exceed the ESC's minimum supported
+      S-rating. Running an ESC below its designed voltage range can cause
+      erratic behavior on the low end, though this is less dangerous than
+      over-voltage. A 4S ESC fed with a 3S battery may under-perform or
+      fail to initialize properly.
+    severity: critical
+    components: [battery, esc]
+    check:
+      field_a: "battery.cell_count"
+      operator: gte
+      field_b: "esc.voltage_min_s"
+    message_template: >
+      Battery is {field_a}S but the ESC requires at least {field_b}S.
+      Use a battery with {field_b} or more cells.
+
+  - id: elec_002
+    category: electrical
+    name: "Battery voltage within ESC maximum S-rating"
+    description: >
+      The battery cell count must not exceed the ESC's maximum supported
+      S-rating. Over-voltage is the most common cause of ESC failure and
+      can result in immediate destruction of the MOSFETs, sometimes with
+      visible fire. A 6S battery on a 4S-max ESC will kill the ESC instantly.
+    severity: critical
+    components: [battery, esc]
+    check:
+      field_a: "battery.cell_count"
+      operator: lte
+      field_b: "esc.voltage_max_s"
+    message_template: >
+      Battery is {field_a}S but the ESC supports a maximum of {field_b}S.
+      Use a battery with {field_b} or fewer cells, or choose an ESC rated
+      for higher voltage.
+
+  # ---------------------------------------------------------------------------
+  # ESC <-> Motor current capacity
+  # ---------------------------------------------------------------------------
+  - id: elec_003
+    category: electrical
+    name: "ESC continuous current exceeds motor max draw (with margin)"
+    description: >
+      Each ESC output must handle the maximum current the motor can draw,
+      plus a 20% safety margin. Motors pull peak current during punch-outs
+      and crash recovery. Without headroom the ESC overheats, desyncs, or
+      burns out. The 20% margin accounts for real-world conditions where
+      current spikes exceed dynamometer bench data.
+    severity: critical
+    components: [esc, motor]
+    check:
+      field_a: "motor.max_current_a"
+      operator: multiply_lte
+      field_b: "esc.continuous_current_a"
+      multiplier: 1.2
+    message_template: >
+      Motor max current ({field_a}A) with 20% safety margin requires at
+      least {limit}A continuous from the ESC, but ESC is rated for only
+      {field_b}A continuous. Choose a higher-rated ESC or a less aggressive
+      motor.
+
+  - id: elec_004
+    category: electrical
+    name: "ESC burst current covers motor peak current"
+    description: >
+      The ESC burst (peak) current rating should be at or above the motor's
+      absolute maximum current draw. Burst ratings typically apply for 10
+      seconds. During hard maneuvers like sustained full-throttle climbs
+      the motor can sit at peak draw for extended periods. If the ESC burst
+      rating is lower than motor peak draw, the ESC may thermal-shutdown
+      mid-flight.
+    severity: warning
+    components: [esc, motor]
+    check:
+      field_a: "motor.max_current_a"
+      operator: lte
+      field_b: "esc.burst_current_a"
+    message_template: >
+      Motor peak current ({field_a}A) exceeds ESC burst rating ({field_b}A).
+      The ESC may overheat during sustained high-throttle maneuvers.
+
+  # ---------------------------------------------------------------------------
+  # Battery discharge capacity vs total system draw
+  # ---------------------------------------------------------------------------
+  - id: elec_005
+    category: electrical
+    name: "Battery C-rating supports total system max current"
+    description: >
+      The battery must be able to deliver the total peak current of all four
+      motors simultaneously. The maximum safe continuous discharge is
+      (capacity_mah / 1000) * c_rating. If total system draw exceeds this,
+      the battery voltage sags severely, the pack overheats, and LiPo
+      cells can puff or catch fire. Real-world C-ratings are often inflated
+      by manufacturers, so this check uses the labeled value as-is — builders
+      should apply additional skepticism to off-brand packs.
+    severity: critical
+    components: [battery, motor]
+    check:
+      field_a: "calc:motor.max_current_a * 4"
+      operator: expression
+      field_b: "calc:(battery.capacity_mah / 1000) * battery.c_rating"
+      expression: "(motor.max_current_a * 4) <= (battery.capacity_mah / 1000) * battery.c_rating"
+    message_template: >
+      Total max system draw ({actual}A across 4 motors) exceeds battery
+      discharge limit ({limit}A = {battery.capacity_mah}mAh *
+      {battery.c_rating}C). Use a higher-capacity or higher-C-rating pack,
+      or choose lower-draw motors.
+
+  - id: elec_006
+    category: electrical
+    name: "Battery C-rating adequate for sustained flight"
+    description: >
+      For comfortable sustained flight the battery should handle at least
+      50% throttle current from all motors continuously. Calculated as
+      motor.avg_cruise_current_a * 4 <= (battery.capacity_mah / 1000) *
+      battery.c_rating. Marginal C-rating causes hot packs and shortened
+      battery lifespan even if peak draw is technically within spec.
+    severity: warning
+    components: [battery, motor]
+    check:
+      field_a: "calc:motor.avg_cruise_current_a * 4"
+      operator: expression
+      field_b: "calc:(battery.capacity_mah / 1000) * battery.c_rating"
+      expression: "(motor.avg_cruise_current_a * 4) <= (battery.capacity_mah / 1000) * battery.c_rating"
+    message_template: >
+      Cruise-level current draw ({actual}A across 4 motors at ~50% throttle)
+      is close to battery discharge limit ({limit}A). The pack will run hot
+      during normal flight. Consider a higher C-rating or larger capacity.
+
+  # ---------------------------------------------------------------------------
+  # FC <-> Battery voltage input
+  # ---------------------------------------------------------------------------
+  - id: elec_007
+    category: electrical
+    name: "FC voltage input supports battery cell count"
+    description: >
+      The flight controller's onboard voltage regulator must accept the
+      battery's full-charge voltage. A 4S LiPo at full charge is 16.8V,
+      6S is 25.2V. Feeding voltage above the FC's max input will destroy
+      the onboard BEC/regulator, potentially taking out the MCU and all
+      connected peripherals. Most modern FCs accept 3-6S but some budget
+      boards are 4S-only.
+    severity: critical
+    components: [fc, battery]
+    check:
+      field_a: "battery.cell_count"
+      operator: range
+      field_b: "fc.voltage_min_s"
+      field_b_high: "fc.voltage_max_s"
+    message_template: >
+      Battery is {field_a}S but the flight controller accepts {field_b}S
+      to {field_b_high}S input. A mismatched voltage will destroy the FC's
+      voltage regulator.
+
+  - id: elec_008
+    category: electrical
+    name: "FC BEC output sufficient for connected peripherals"
+    description: >
+      The FC's 5V BEC must supply enough current for all connected 5V
+      peripherals (receiver, GPS, LED strips, etc.). Typical receiver draws
+      ~100mA, GPS ~80mA, LEDs can draw 500mA+. If the BEC is overloaded it
+      may brown-out causing an in-flight reboot. Most FCs provide 1-3A on
+      the 5V rail.
+    severity: warning
+    components: [fc]
+    check:
+      field_a: "calc:build.total_5v_draw_ma"
+      operator: lte
+      field_b: "fc.bec_5v_current_ma"
+    message_template: >
+      Total 5V peripheral draw ({actual}mA) may exceed the FC's 5V BEC
+      capacity ({field_b}mA). Risk of brown-out in flight. Consider an
+      external BEC or reducing peripherals.
+
+  # ---------------------------------------------------------------------------
+  # VTX <-> Battery voltage
+  # ---------------------------------------------------------------------------
+  - id: elec_009
+    category: electrical
+    name: "VTX input voltage within rated range"
+    description: >
+      The video transmitter's input voltage range must support the battery's
+      voltage. Many analog VTXs accept wide input (7-26V) but some digital
+      systems (e.g., early DJI Air Unit) have tighter limits. Feeding a VTX
+      above its max input voltage burns out the internal regulator. Running
+      below minimum causes the VTX to not power on or transmit erratically.
+    severity: critical
+    components: [vtx, battery]
+    check:
+      field_a: "battery.cell_count"
+      operator: range
+      field_b: "vtx.voltage_min_s"
+      field_b_high: "vtx.voltage_max_s"
+    message_template: >
+      Battery is {field_a}S but the VTX accepts {field_b}S to {field_b_high}S
+      input. Voltage outside this range will damage or disable the VTX.
+
+  - id: elec_010
+    category: electrical
+    name: "VTX power draw within FC VTX BEC capacity"
+    description: >
+      If the VTX is powered from the FC's dedicated VTX voltage pad (typically
+      9V or VBAT-regulated), the FC's VTX BEC must handle the VTX's current
+      draw. High-power analog VTXs at 800mW+ can draw over 1A. Some FCs only
+      provide 500mA on their VTX pad.
+    severity: warning
+    components: [vtx, fc]
+    check:
+      field_a: "vtx.max_current_draw_ma"
+      operator: lte
+      field_b: "fc.vtx_bec_current_ma"
+    message_template: >
+      VTX draws up to {field_a}mA but the FC's VTX BEC is rated for
+      {field_b}mA. The VTX may brown-out at higher power levels. Power the
+      VTX directly from the battery or add an external regulator.
+
+  # ---------------------------------------------------------------------------
+  # Motor <-> Battery KV / voltage relationship
+  # ---------------------------------------------------------------------------
+  - id: elec_011
+    category: electrical
+    name: "Motor KV appropriate for battery voltage (max RPM check)"
+    description: >
+      Motor KV * battery voltage (cell_count * 4.2) determines no-load RPM.
+      Excessively high RPM for a given prop diameter creates dangerous tip
+      speeds, excessive noise, and reduced efficiency. Standard combos:
+      5" props ~1700-2500KV on 6S, ~2400-2700KV on 4S. This rule flags
+      combinations where max theoretical RPM exceeds the prop's safe
+      operating range.
+    severity: warning
+    components: [motor, battery, propeller]
+    check:
+      field_a: "calc:motor.kv * battery.cell_count * 4.2"
+      operator: expression
+      field_b: "propeller.max_rpm"
+      expression: "(motor.kv * battery.cell_count * 4.2) <= propeller.max_rpm"
+    message_template: >
+      Theoretical max RPM ({actual}) exceeds propeller's rated max RPM
+      ({field_b}). This KV/voltage/prop combination may cause prop failure
+      at full throttle. Lower the KV or cell count, or use a prop rated for
+      higher RPM.
+
+  - id: elec_012
+    category: electrical
+    name: "Motor KV and cell count within typical FPV ranges"
+    description: >
+      Sanity check that KV * S-count falls within the broadly accepted
+      FPV range. The product of KV * S should generally be between 7000 and
+      12000 for standard 5" builds. Values outside this range are not
+      necessarily wrong but warrant a second look — the builder may have
+      selected a motor intended for a different class.
+    severity: info
+    components: [motor, battery]
+    check:
+      field_a: "calc:motor.kv * battery.cell_count"
+      operator: range
+      field_b: 7000
+      field_b_high: 12000
+    message_template: >
+      KV * cell count = {actual}. Typical 5" freestyle/racing builds fall
+      between 7000 and 12000. Your combination may be intended for a
+      different frame size or flight style.
