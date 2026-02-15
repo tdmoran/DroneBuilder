@@ -111,6 +111,11 @@ document.body.addEventListener('htmx:afterRequest', function(evt) {
           resp.firmware + ' ' + resp.firmware_version;
         if (resp.board_name) statusHtml += ' on ' + resp.board_name;
         statusHtml += '</div>';
+        statusHtml += '<details style="margin-top: 0.75rem;">' +
+          '<summary style="cursor: pointer; color: var(--pico-primary);">Show raw config dump</summary>' +
+          '<pre style="max-height: 400px; overflow: auto; font-size: 0.8em; margin-top: 0.5rem;">' +
+          resp.raw_text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;") +
+          '</pre></details>';
         evt.detail.target.innerHTML = statusHtml;
       } else if (resp.error) {
         evt.detail.target.innerHTML = '<div style="border-left: 4px solid #ff4136; padding: 0.5rem 0.75rem;">' +
