@@ -20,6 +20,8 @@ TYPE_LABELS = {
     "receiver": "Receivers",
     "servo": "Servos",
     "airframe": "Airframes",
+    "gps": "GPS Modules",
+    "camera": "FPV Cameras",
 }
 
 

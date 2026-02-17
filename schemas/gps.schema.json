@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dronebuilder.local/schemas/gps.schema.json",
+  "title": "FPV Drone GPS Module",
+  "description": "Schema for a GPS module used in FPV drones. Covers GNSS constellation support, update rate, compass/barometer integration, and connectivity.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the GPS module, typically a slug.",
+      "minLength": 1
+    },
+    "component_type": {
+      "type": "string",
+      "description": "Component type identifier.",
+      "const": "gps"
+    },
+    "manufacturer": {
+      "type": "string",
+      "description": "Name of the GPS module manufacturer (e.g., Matek, BetaFPV, Flywoo, SpeedyBee).",
+      "minLength": 1
+    },
+    "model": {
+      "type": "string",
+      "description": "Model name of the GPS module (e.g., M10Q-5883, BN-880).",
+      "minLength": 1
+    },
+    "weight_g": {
+      "type": "number",
+      "description": "Weight of the GPS module in grams, including cable.",
+      "minimum": 0.5,
+      "maximum": 100
+    },
+    "price_usd": {
+      "type": "number",
+      "description": "Price in US dollars for the GPS module.",
+      "minimum": 0
+    },
+    "category": {
+      "type": "string",
+      "description": "Size/use category for the GPS module.",
+      "enum": ["standard", "mini", "micro"]
+    },
+    "specs": {
+      "type": "object",
+      "description": "Technical specifications for the GPS module.",
+      "properties": {
+        "constellation": {
+          "type": "array",
+          "description": "Supported GNSS constellations (GPS, GLONASS, Galileo, BeiDou).",
+          "items": {
+            "type": "string",
+            "enum": ["GPS", "GLONASS", "Galileo", "BeiDou"]
+          },
+          "minItems": 1
+        },
+        "update_rate_hz": {
+          "type": "integer",
+          "description": "Maximum position update rate in Hz. Common values: 5, 10, 25.",
+          "minimum": 1,
+          "maximum": 50
+        },
+        "uart_protocol": {
+          "type": "string",
+          "description": "Serial protocol used to communicate with the flight controller.",
+          "enum": ["UBX", "NMEA", "UBX+NMEA"]
+        },
+        "voltage_min_v": {
+          "type": "number",
+          "description": "Minimum operating voltage in volts.",
+          "minimum": 1.0
+        },
+        "voltage_max_v": {
+          "type": "number",
+          "description": "Maximum operating voltage in volts.",
+          "maximum": 10.0
+        },
+        "has_compass": {
+          "type": "boolean",
+          "description": "Whether the module includes an integrated magnetometer/compass (e.g., QMC5883L, HMC5883L, IST8310)."
+        },
+        "has_barometer": {
+          "type": "boolean",
+          "description": "Whether the module includes an integrated barometric pressure sensor."
+        },
+        "antenna_type": {
+          "type": "string",
+          "description": "Type of GPS antenna. Ceramic patch antennas are compact; helical antennas offer better reception.",
+          "enum": ["ceramic", "helical"]
+        },
+        "connector_type": {
+          "type": "string",
+          "description": "Cable/connector type for connecting to the flight controller.",
+          "enum": ["JST-GH 1.25mm", "JST-SH 1.0mm", "solder pads", "Molex PicoBlade"]
+        },
+        "current_draw_5v_ma": {
+          "type": "number",
+          "description": "Typical current draw at 5V in milliamps.",
+          "minimum": 0
+        },
+        "chip": {
+          "type": "string",
+          "description": "GPS receiver chip model (e.g., u-blox M8N, u-blox M10)."
+        }
+      },
+      "required": [
+        "constellation",
+        "update_rate_hz",
+        "uart_protocol",
+        "voltage_min_v",
+        "voltage_max_v",
+        "has_compass",
+        "has_barometer",
+        "antenna_type",
+        "connector_type"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "component_type",
+    "manufacturer",
+    "model",
+    "weight_g",
+    "price_usd",
+    "category",
+    "specs"
+  ],
+  "additionalProperties": false
+}

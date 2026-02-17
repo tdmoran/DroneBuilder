@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dronebuilder.local/schemas/camera.schema.json",
+  "title": "FPV Drone Camera",
+  "description": "Schema for an FPV camera used in drones. Covers sensor specs, field of view, form factor, and electrical requirements. Note: digital VTX units with integrated cameras (e.g., DJI O3, Walksnail Avatar) are separate — this schema is for standalone analog or digital-compatible FPV cameras.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the camera, typically a slug.",
+      "minLength": 1
+    },
+    "component_type": {
+      "type": "string",
+      "description": "Component type identifier.",
+      "const": "camera"
+    },
+    "manufacturer": {
+      "type": "string",
+      "description": "Name of the camera manufacturer (e.g., Caddx, RunCam, Foxeer).",
+      "minLength": 1
+    },
+    "model": {
+      "type": "string",
+      "description": "Model name of the camera (e.g., Ratel 2, Phoenix 2).",
+      "minLength": 1
+    },
+    "weight_g": {
+      "type": "number",
+      "description": "Weight of the camera in grams.",
+      "minimum": 0.5,
+      "maximum": 100
+    },
+    "price_usd": {
+      "type": "number",
+      "description": "Price in US dollars for the camera.",
+      "minimum": 0
+    },
+    "category": {
+      "type": "string",
+      "description": "Camera system category.",
+      "enum": ["analog", "digital_compatible", "hdzero"]
+    },
+    "specs": {
+      "type": "object",
+      "description": "Technical specifications for the FPV camera.",
+      "properties": {
+        "sensor_size": {
+          "type": "string",
+          "description": "Image sensor size designation (e.g., 1/1.8\", 1/2\", 1/3\")."
+        },
+        "resolution": {
+          "type": "string",
+          "description": "Maximum output resolution (e.g., 1200TVL, 1500TVL for analog; 720p/1080p for digital)."
+        },
+        "fov_degrees": {
+          "type": "number",
+          "description": "Diagonal field of view in degrees.",
+          "minimum": 60,
+          "maximum": 200
+        },
+        "min_illumination_lux": {
+          "type": "number",
+          "description": "Minimum illumination in lux for usable image. Lower is better for low-light.",
+          "minimum": 0
+        },
+        "voltage_min_v": {
+          "type": "number",
+          "description": "Minimum operating voltage in volts.",
+          "minimum": 1.0
+        },
+        "voltage_max_v": {
+          "type": "number",
+          "description": "Maximum operating voltage in volts.",
+          "maximum": 40.0
+        },
+        "form_factor": {
+          "type": "string",
+          "description": "Physical form factor. 'micro' is 19mm width; 'nano' is 14mm width; 'full' is standard 28mm width.",
+          "enum": ["micro", "nano", "full"]
+        },
+        "width_mm": {
+          "type": "number",
+          "description": "Camera body width in millimeters (determines frame compatibility).",
+          "minimum": 5,
+          "maximum": 40
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "description": "Supported aspect ratio(s) of the camera output.",
+          "enum": ["4:3", "16:9", "switchable"]
+        },
+        "wdr": {
+          "type": "boolean",
+          "description": "Whether the camera supports Wide Dynamic Range for handling high-contrast scenes."
+        },
+        "osd_overlay": {
+          "type": "boolean",
+          "description": "Whether the camera has its own OSD overlay (camera settings menu)."
+        },
+        "ntsc_pal": {
+          "type": "string",
+          "description": "Supported video standards for analog output.",
+          "enum": ["NTSC", "PAL", "switchable"]
+        },
+        "current_draw_5v_ma": {
+          "type": "number",
+          "description": "Typical current draw at 5V in milliamps.",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "sensor_size",
+        "resolution",
+        "fov_degrees",
+        "min_illumination_lux",
+        "voltage_min_v",
+        "voltage_max_v",
+        "form_factor",
+        "width_mm",
+        "aspect_ratio",
+        "wdr",
+        "osd_overlay",
+        "ntsc_pal"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "component_type",
+    "manufacturer",
+    "model",
+    "weight_g",
+    "price_usd",
+    "category",
+    "specs"
+  ],
+  "additionalProperties": false
+}

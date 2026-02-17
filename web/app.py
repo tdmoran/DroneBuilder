@@ -68,13 +68,15 @@ def create_app() -> Flask:
 
 
 def create_socketio_app():
-    """Create Flask app with SocketIO for serial terminal support."""
+    """Create Flask app with SocketIO for serial terminal and diagnostic support."""
     from flask_socketio import SocketIO
 
+    from web.routes.diagnose import init_diagnose_socketio
     from web.routes.serial import init_serial_socketio
 
     app = create_app()
     socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
     init_serial_socketio(socketio)
+    init_diagnose_socketio(socketio)
 
     return app, socketio

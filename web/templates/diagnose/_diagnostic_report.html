@@ -1,174 +1,257 @@
-<article>
-  <header>
-    <strong>Diagnostic Report — {{ report.build_name }}</strong>
-    <br><small>{{ report.fc_info }}</small>
+{# Full diagnostic report — rendered by htmx fallback or as a standalone partial #}
+
+{# --- Macro for rendering a single finding card (must be defined before use) --- #}
+{% macro render_finding(item, fix_suggestions) %}
+<div class="diag-finding-card">
+  <div class="diag-finding-header" onclick="this.parentElement.classList.toggle('diag-finding-expanded')">
+    <span class="severity-badge-{{ item.severity.value }}">
+      {% if item.severity.value == 'critical' %}&#10007;{% elif item.severity.value == 'warning' %}&#9888;{% else %}&#8505;{% endif %}
+      {{ item.severity.value | upper }}
+    </span>
+    {% if item.constraint_id is defined %}
+    <span class="diag-finding-id">{{ item.constraint_id }}</span>
+    <span class="diag-finding-name">{{ item.constraint_name }}</span>
+    {% else %}
+    <span class="diag-finding-id">{{ item.id }}</span>
+    <span class="diag-finding-name">{{ item.component_type | capitalize }} discrepancy</span>
+    {% endif %}
+    <span class="diag-finding-expand-icon"></span>
+  </div>
+  <div class="diag-finding-body">
+    {% if item.constraint_id is defined %}
+    <p class="diag-finding-message">{{ item.message }}</p>
+    {% if fix_suggestions.get(item.constraint_id) %}
+    <div class="diag-finding-fix">
+      <strong>How to fix:</strong>
+      <ol class="diag-fix-steps">
+        {% for step in fix_suggestions[item.constraint_id].split('. ') %}
+        {% if step.strip() %}
+        <li>{{ step.strip().rstrip('.') }}.</li>
+        {% endif %}
+        {% endfor %}
+      </ol>
+    </div>
+    {% endif %}
+    {% else %}
+    <p class="diag-finding-message">{{ item.message }}</p>
+    <div class="diag-finding-fix">
+      <strong>How to fix:</strong>
+      <ol class="diag-fix-steps">
+        {% for step in item.fix_suggestion.split('. ') %}
+        {% if step.strip() %}
+        <li>{{ step.strip().rstrip('.') }}.</li>
+        {% endif %}
+        {% endfor %}
+      </ol>
+    </div>
+    {% endif %}
+    <button type="button" class="diag-copy-btn outline" onclick="copyFindingText(this)">Copy</button>
+  </div>
+</div>
+{% endmacro %}
+
+<article class="diag-report">
+  <header class="diag-report-header">
+    <div>
+      <strong>Diagnostic Report</strong>
+      <br><span class="diag-report-subtitle">{{ report.build_name }} &mdash; {{ report.fc_info }}</span>
+    </div>
   </header>
 
-  {# Config changes since last backup #}
+  {# --- Summary card --- #}
+  {% set crit_count = report.discrepancies | selectattr('severity.value', 'equalto', 'critical') | list | length +
+       (report.firmware_report.critical_failures | length if report.firmware_report else 0) +
+       (report.compatibility_report.critical_failures | length if report.compatibility_report else 0) %}
+  {% set warn_count = report.discrepancies | selectattr('severity.value', 'equalto', 'warning') | list | length +
+       (report.firmware_report.results | selectattr('severity.value', 'equalto', 'warning') | rejectattr('passed') | list | length if report.firmware_report else 0) +
+       (report.compatibility_report.results | selectattr('severity.value', 'equalto', 'warning') | rejectattr('passed') | list | length if report.compatibility_report else 0) %}
+  {% set info_count = report.discrepancies | selectattr('severity.value', 'equalto', 'info') | list | length +
+       (report.firmware_report.results | selectattr('severity.value', 'equalto', 'info') | rejectattr('passed') | list | length if report.firmware_report else 0) +
+       (report.compatibility_report.results | selectattr('severity.value', 'equalto', 'info') | rejectattr('passed') | list | length if report.compatibility_report else 0) %}
+  {% set total_issues = crit_count + warn_count + info_count %}
+
+  <div class="diag-summary-card {% if report.has_critical_issues %}diag-health-critical{% elif warn_count > 0 %}diag-health-attention{% else %}diag-health-good{% endif %}">
+    <div class="diag-summary-health">
+      {% if report.has_critical_issues %}CRITICAL ISSUES{% elif warn_count > 0 %}NEEDS ATTENTION{% else %}GOOD{% endif %}
+    </div>
+    <div class="diag-summary-counts">
+      {% if crit_count > 0 %}
+      <span class="diag-count-badge diag-count-critical">{{ crit_count }} Critical</span>
+      {% endif %}
+      {% if warn_count > 0 %}
+      <span class="diag-count-badge diag-count-warning">{{ warn_count }} Warning{{ 's' if warn_count != 1 }}</span>
+      {% endif %}
+      {% if info_count > 0 %}
+      <span class="diag-count-badge diag-count-info">{{ info_count }} Info</span>
+      {% endif %}
+      {% if total_issues == 0 %}
+      <span class="diag-count-badge diag-count-pass">All checks passed</span>
+      {% endif %}
+    </div>
+  </div>
+
+  {# --- Config changes since last backup --- #}
   {% if report.config_changes is not none %}
-  <div id="config-changes-area">
+  <div class="diag-report-section">
     {% if report.config_changes %}
-    <details>
-      <summary>Config changes since last backup: <strong>{{ report.config_changes | length }} setting{{ 's' if report.config_changes | length != 1 }} changed</strong></summary>
+    <details class="diag-changes-details">
+      <summary>
+        <strong>{{ report.config_changes | length }}</strong> config change{{ 's' if report.config_changes | length != 1 }} since last backup
+      </summary>
       <ul>
         {% for change in report.config_changes %}
-        <li><small>{{ change }}</small></li>
+        <li>{{ change }}</li>
         {% endfor %}
       </ul>
     </details>
     {% else %}
-    <p><small>No config changes since last backup.</small></p>
+    <p class="diag-no-changes">No config changes since last backup.</p>
     {% endif %}
   </div>
   {% endif %}
 
-  {# Overall status #}
-  {% if report.has_critical_issues %}
-  <div style="border-left: 4px solid #ff4136; padding: 0.5rem 0.75rem; margin-bottom: 1rem;">
-    <strong style="color: #ff4136;">Critical issues found</strong>
-    — {{ report.discrepancies | selectattr('severity.value', 'equalto', 'critical') | list | length +
-         (report.firmware_report.critical_failures | length if report.firmware_report else 0) +
-         (report.compatibility_report.critical_failures | length if report.compatibility_report else 0) }} critical
-  </div>
-  {% else %}
-  <div style="border-left: 4px solid #2ecc40; padding: 0.5rem 0.75rem; margin-bottom: 1rem;">
-    <strong style="color: #2ecc40;">No critical issues</strong>
-  </div>
-  {% endif %}
-
-  {# Symptom-relevant findings #}
+  {# --- Symptom-relevant findings --- #}
   {% if report.symptoms and report.symptom_relevant %}
-  <div class="validation-section critical" style="border-color: #9b59b6;">
-    <strong style="color: #9b59b6;">Related to:
-      {% for s in report.symptoms %}
-        "{{ symptoms.get(s, s) }}"{% if not loop.last %}, {% endif %}
-      {% endfor %}
-    </strong>
+  <div class="diag-report-section">
+    <details open class="diag-finding-group">
+      <summary class="diag-group-header diag-group-symptom">
+        Related to:
+        {% for s in report.symptoms %}
+          "{{ symptoms.get(s, s) }}"{% if not loop.last %}, {% endif %}
+        {% endfor %}
+        <span class="diag-group-count">{{ report.symptom_relevant | length }}</span>
+      </summary>
 
-    {% for item in report.symptom_relevant %}
-    <div class="validation-item diagnostic-finding">
-      <span class="severity-{{ item.severity.value }}">
-        {% if item.severity.value == 'critical' %}&#10007;{% elif item.severity.value == 'warning' %}&#9888;{% else %}&#8505;{% endif %}
-        {{ item.severity.value | upper }}
-      </span>
-      {% if item.constraint_id is defined %}
-      <strong>{{ item.constraint_id }}</strong>: {{ item.constraint_name }}
-      <br><small>{{ item.message }}</small>
-      {% if fix_suggestions.get(item.constraint_id) %}
-      <details>
-        <summary><small>How to fix</small></summary>
-        <p><small>{{ fix_suggestions[item.constraint_id] }}</small></p>
-      </details>
-      {% endif %}
-      {% else %}
-      <strong>{{ item.id }}</strong>: {{ item.component_type | capitalize }} discrepancy
-      <br><small>{{ item.message }}</small>
-      <details>
-        <summary><small>How to fix</small></summary>
-        <p><small>{{ item.fix_suggestion }}</small></p>
-      </details>
-      {% endif %}
-      <span class="badge" style="font-size: 0.7em; background: #9b59b6; color: #fff;">symptom match</span>
-    </div>
-    {% endfor %}
+      {% for item in report.symptom_relevant %}
+      <div class="diag-finding-card">
+        <div class="diag-finding-header" onclick="this.parentElement.classList.toggle('diag-finding-expanded')">
+          <span class="severity-badge-{{ item.severity.value }}">
+            {% if item.severity.value == 'critical' %}&#10007;{% elif item.severity.value == 'warning' %}&#9888;{% else %}&#8505;{% endif %}
+            {{ item.severity.value | upper }}
+          </span>
+          {% if item.constraint_id is defined %}
+          <span class="diag-finding-id">{{ item.constraint_id }}</span>
+          <span class="diag-finding-name">{{ item.constraint_name }}</span>
+          {% else %}
+          <span class="diag-finding-id">{{ item.id }}</span>
+          <span class="diag-finding-name">{{ item.component_type | capitalize }} discrepancy</span>
+          {% endif %}
+          <span class="diag-finding-expand-icon"></span>
+        </div>
+        <div class="diag-finding-body">
+          {% if item.constraint_id is defined %}
+          <p class="diag-finding-message">{{ item.message }}</p>
+          {% if fix_suggestions.get(item.constraint_id) %}
+          <div class="diag-finding-fix">
+            <strong>How to fix:</strong>
+            <ol class="diag-fix-steps">
+              {% for step in fix_suggestions[item.constraint_id].split('. ') %}
+              {% if step.strip() %}
+              <li>{{ step.strip().rstrip('.') }}.</li>
+              {% endif %}
+              {% endfor %}
+            </ol>
+          </div>
+          {% endif %}
+          {% else %}
+          <p class="diag-finding-message">{{ item.message }}</p>
+          <div class="diag-finding-fix">
+            <strong>How to fix:</strong>
+            <ol class="diag-fix-steps">
+              {% for step in item.fix_suggestion.split('. ') %}
+              {% if step.strip() %}
+              <li>{{ step.strip().rstrip('.') }}.</li>
+              {% endif %}
+              {% endfor %}
+            </ol>
+          </div>
+          {% endif %}
+          <button type="button" class="diag-copy-btn outline" onclick="copyFindingText(this)">Copy</button>
+        </div>
+      </div>
+      {% endfor %}
+    </details>
   </div>
   {% endif %}
 
-  {# Other findings #}
+  {# --- Other findings grouped by severity --- #}
   {% set other = report.other_findings %}
   {% if other %}
-  <h4>Other Findings</h4>
-
-  {# Group by severity #}
   {% set critical_items = other | selectattr('severity.value', 'equalto', 'critical') | list %}
   {% set warning_items = other | selectattr('severity.value', 'equalto', 'warning') | list %}
   {% set info_items = other | selectattr('severity.value', 'equalto', 'info') | list %}
 
   {% if critical_items %}
-  <div class="validation-section critical">
-    <strong class="severity-critical">Critical</strong>
-    {% for item in critical_items %}
-    <div class="validation-item diagnostic-finding">
-      {% if item.constraint_id is defined %}
-      <strong>{{ item.constraint_id }}</strong>: {{ item.constraint_name }}
-      <br><small>{{ item.message }}</small>
-      {% if fix_suggestions.get(item.constraint_id) %}
-      <details>
-        <summary><small>How to fix</small></summary>
-        <p><small>{{ fix_suggestions[item.constraint_id] }}</small></p>
-      </details>
-      {% endif %}
-      {% else %}
-      <strong>{{ item.id }}</strong>: {{ item.component_type | capitalize }} discrepancy
-      <br><small>{{ item.message }}</small>
-      <details>
-        <summary><small>How to fix</small></summary>
-        <p><small>{{ item.fix_suggestion }}</small></p>
-      </details>
-      {% endif %}
-    </div>
-    {% endfor %}
+  <div class="diag-report-section">
+    <details open class="diag-finding-group">
+      <summary class="diag-group-header diag-group-critical">
+        Critical Issues
+        <span class="diag-group-count">{{ critical_items | length }}</span>
+      </summary>
+      {% for item in critical_items %}
+      {{ render_finding(item, fix_suggestions) }}
+      {% endfor %}
+    </details>
   </div>
   {% endif %}
 
   {% if warning_items %}
-  <div class="validation-section warning">
-    <strong class="severity-warning">Warnings</strong>
-    {% for item in warning_items %}
-    <div class="validation-item diagnostic-finding">
-      {% if item.constraint_id is defined %}
-      <strong>{{ item.constraint_id }}</strong>: {{ item.constraint_name }}
-      <br><small>{{ item.message }}</small>
-      {% if fix_suggestions.get(item.constraint_id) %}
-      <details>
-        <summary><small>How to fix</small></summary>
-        <p><small>{{ fix_suggestions[item.constraint_id] }}</small></p>
-      </details>
-      {% endif %}
-      {% else %}
-      <strong>{{ item.id }}</strong>: {{ item.component_type | capitalize }} discrepancy
-      <br><small>{{ item.message }}</small>
-      <details>
-        <summary><small>How to fix</small></summary>
-        <p><small>{{ item.fix_suggestion }}</small></p>
-      </details>
-      {% endif %}
-    </div>
-    {% endfor %}
+  <div class="diag-report-section">
+    <details open class="diag-finding-group">
+      <summary class="diag-group-header diag-group-warning">
+        Warnings
+        <span class="diag-group-count">{{ warning_items | length }}</span>
+      </summary>
+      {% for item in warning_items %}
+      {{ render_finding(item, fix_suggestions) }}
+      {% endfor %}
+    </details>
   </div>
   {% endif %}
 
   {% if info_items %}
-  <div class="validation-section info">
-    <strong class="severity-info">Info</strong>
-    {% for item in info_items %}
-    <div class="validation-item diagnostic-finding">
-      {% if item.constraint_id is defined %}
-      <strong>{{ item.constraint_id }}</strong>: {{ item.constraint_name }}
-      <br><small>{{ item.message }}</small>
-      {% if fix_suggestions.get(item.constraint_id) %}
-      <details>
-        <summary><small>How to fix</small></summary>
-        <p><small>{{ fix_suggestions[item.constraint_id] }}</small></p>
-      </details>
-      {% endif %}
-      {% else %}
-      <strong>{{ item.id }}</strong>: {{ item.component_type | capitalize }} discrepancy
-      <br><small>{{ item.message }}</small>
-      <details>
-        <summary><small>How to fix</small></summary>
-        <p><small>{{ item.fix_suggestion }}</small></p>
-      </details>
-      {% endif %}
-    </div>
-    {% endfor %}
+  <div class="diag-report-section">
+    <details class="diag-finding-group">
+      <summary class="diag-group-header diag-group-info">
+        Informational
+        <span class="diag-group-count">{{ info_items | length }}</span>
+      </summary>
+      {% for item in info_items %}
+      {{ render_finding(item, fix_suggestions) }}
+      {% endfor %}
+    </details>
   </div>
   {% endif %}
 
   {% elif not report.symptom_relevant %}
-  <div style="border-left: 4px solid #2ecc40; padding: 0.5rem 0.75rem;">
-    <strong style="color: #2ecc40;">All checks passed</strong>
-    <br><small>No issues found in firmware or compatibility validation.</small>
+  <div class="diag-report-section">
+    <div class="diag-all-clear">
+      <span class="diag-all-clear-icon">&#10003;</span>
+      <strong>All checks passed</strong>
+      <p>No issues found in firmware or compatibility validation.</p>
+    </div>
   </div>
   {% endif %}
 </article>
+
+<script>
+function copyFindingText(btn) {
+  var card = btn.closest('.diag-finding-card');
+  if (!card) return;
+  var id = card.querySelector('.diag-finding-id');
+  var name = card.querySelector('.diag-finding-name');
+  var msg = card.querySelector('.diag-finding-message');
+  var fix = card.querySelector('.diag-finding-fix');
+
+  var text = (id ? id.textContent : '') + ': ' + (name ? name.textContent : '') + '\n';
+  if (msg) text += msg.textContent.trim() + '\n';
+  if (fix) text += fix.textContent.trim() + '\n';
+
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function() {
+      btn.textContent = 'Copied';
+      setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
+    });
+  }
+}
+</script>

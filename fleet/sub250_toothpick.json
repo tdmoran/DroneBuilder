@@ -1,0 +1,16 @@
+{
+  "name": "Sub-250g Toothpick",
+  "drone_class": "sub250",
+  "status": "active",
+  "nickname": "Toothpick",
+  "notes": "Lightweight 3-inch toothpick build targeting sub-250g AUW. Uses 1404 motors on 4S for efficient cruising. HDZero Race VTX for digital HD at minimal weight.",
+  "tags": ["sub250", "3inch", "lightweight", "toothpick"],
+  "motor": "motor_emax_1404_3700kv",
+  "esc": "esc_speedybee_bls_25a_4in1_20x20",
+  "fc": "fc_speedybee_f405_mini",
+  "frame": "frame_geprc_phantom_3",
+  "propeller": "prop_gemfan_3016_2blade",
+  "battery": "battery_cnhl_650_4s_100c",
+  "vtx": "vtx_hdzero_race_v3",
+  "receiver": "rx_betafpv_elrs_lite_2_4ghz"
+}

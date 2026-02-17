@@ -382,5 +382,53 @@
     "price_usd": 4.49,
     "category": "whoop",
     "recommended_props": ["31mm 3-blade"]
+  },
+  {
+    "id": "motor_flywoo_nin_1505_2350kv",
+    "manufacturer": "Flywoo",
+    "model": "NIN 1505 2350KV",
+    "specs": {
+      "kv": 2350,
+      "stator_diameter_mm": 15,
+      "stator_height_mm": 5,
+      "shaft_diameter_mm": 1.5,
+      "motor_diameter_mm": 19.0,
+      "motor_height_mm": 18.5,
+      "mounting_pattern_mm": 9,
+      "max_current_a": 16,
+      "max_power_w": 240,
+      "voltage_range": "4S-6S",
+      "bearing_type": "EZO",
+      "magnet_type": "N52SH",
+      "connector": "22AWG wires"
+    },
+    "weight_g": 11.2,
+    "price_usd": 16.99,
+    "category": "4inch",
+    "recommended_props": ["4023", "4x2.5x3"]
+  },
+  {
+    "id": "motor_tmotor_f1103_11000kv",
+    "manufacturer": "T-Motor",
+    "model": "F1103 11000KV",
+    "specs": {
+      "kv": 11000,
+      "stator_diameter_mm": 11,
+      "stator_height_mm": 3,
+      "shaft_diameter_mm": 1.0,
+      "motor_diameter_mm": 13.5,
+      "motor_height_mm": 14.0,
+      "mounting_pattern_mm": 6.6,
+      "max_current_a": 6,
+      "max_power_w": 50,
+      "voltage_range": "2S-3S",
+      "bearing_type": "EZO",
+      "magnet_type": "N52SH",
+      "connector": "22AWG wires"
+    },
+    "weight_g": 3.8,
+    "price_usd": 12.99,
+    "category": "sub250",
+    "recommended_props": ["3016", "3x1.5x3"]
   }
 ]

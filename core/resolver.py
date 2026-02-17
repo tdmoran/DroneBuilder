@@ -67,7 +67,44 @@ def _resolve_build_field(field_name: str, build: Build) -> Any:
         return build.servo_count
     if field_name == "total_price_usd":
         return build.total_price_usd
+    if field_name == "total_5v_draw_ma":
+        return _calc_total_5v_draw_ma(build)
     return None
+
+
+def _calc_total_5v_draw_ma(build: Build) -> float:
+    """Calculate the total estimated 5V BEC current draw in milliamps.
+
+    Sums up known 5V consumers on the build:
+    - FC peripherals baseline (~200 mA)
+    - Receiver (from specs or default ~100 mA)
+    - GPS module (from specs or default ~50 mA)
+    - FPV camera (from specs or default ~200 mA)
+
+    Components that expose a ``current_draw_5v_ma`` spec are used directly;
+    otherwise conservative defaults are applied.
+    """
+    total = 200.0  # FC peripherals baseline (OSD, LED, buzzer, etc.)
+
+    # Receiver draw
+    rx = build.get_component("receiver")
+    if rx is not None:
+        rx_draw = rx.specs.get("current_draw_5v_ma")
+        total += rx_draw if rx_draw is not None else 100.0
+
+    # GPS draw
+    gps = build.get_component("gps")
+    if gps is not None:
+        gps_draw = gps.specs.get("current_draw_5v_ma")
+        total += gps_draw if gps_draw is not None else 50.0
+
+    # Camera draw
+    camera = build.get_component("camera")
+    if camera is not None:
+        cam_draw = camera.specs.get("current_draw_5v_ma")
+        total += cam_draw if cam_draw is not None else 200.0
+
+    return total
 
 
 def _eval_expression(expr: str, build: Build) -> Any:

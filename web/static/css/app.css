@@ -1,6 +1,30 @@
 /* DroneBuilder Web UI — custom styles on top of Pico CSS */
 
-/* Status badges */
+/* ===================================================================
+   Diagnostic color scheme (CSS custom properties)
+   =================================================================== */
+
+:root {
+  --diag-pass: #2ecc40;
+  --diag-pass-bg: #d4edda;
+  --diag-critical: #e74c3c;
+  --diag-critical-bg: #fce4e4;
+  --diag-warning: #f39c12;
+  --diag-warning-bg: #fff3cd;
+  --diag-info: #3498db;
+  --diag-info-bg: #d6eaf8;
+  --diag-skip: #95a5a6;
+  --diag-symptom: #9b59b6;
+  --diag-symptom-bg: #f3e5f5;
+  --diag-surface: var(--pico-card-background-color);
+  --diag-border: var(--pico-muted-border-color);
+  --diag-muted: var(--pico-muted-color);
+}
+
+/* ===================================================================
+   Status badges
+   =================================================================== */
+
 .badge {
   display: inline-block;
   padding: 0.15em 0.55em;
@@ -15,31 +39,72 @@
 .badge-crashed  { background: #ff4136; color: #fff; }
 .badge-sold     { background: #85144b; color: #fff; }
 
-/* Severity colors for validation */
-.severity-critical { color: #ff4136; }
-.severity-warning  { color: #ff851b; }
-.severity-info     { color: #0074d9; }
+/* ===================================================================
+   Severity colors (used across validation and diagnostics)
+   =================================================================== */
+
+.severity-critical { color: var(--diag-critical); }
+.severity-warning  { color: var(--diag-warning); }
+.severity-info     { color: var(--diag-info); }
+
+.severity-badge-critical {
+  display: inline-block;
+  padding: 0.15em 0.5em;
+  border-radius: 3px;
+  font-size: 0.75em;
+  font-weight: 700;
+  background: var(--diag-critical);
+  color: #fff;
+  letter-spacing: 0.03em;
+}
+.severity-badge-warning {
+  display: inline-block;
+  padding: 0.15em 0.5em;
+  border-radius: 3px;
+  font-size: 0.75em;
+  font-weight: 700;
+  background: var(--diag-warning);
+  color: #fff;
+  letter-spacing: 0.03em;
+}
+.severity-badge-info {
+  display: inline-block;
+  padding: 0.15em 0.5em;
+  border-radius: 3px;
+  font-size: 0.75em;
+  font-weight: 700;
+  background: var(--diag-info);
+  color: #fff;
+  letter-spacing: 0.03em;
+}
+
+/* ===================================================================
+   Validation sections (existing — kept for non-diagnose pages)
+   =================================================================== */
 
 .validation-section {
   margin-bottom: 1rem;
   padding: 0.75rem 1rem;
   border-left: 4px solid;
   border-radius: 4px;
-  background: var(--pico-card-background-color);
+  background: var(--diag-surface);
 }
-.validation-section.critical { border-color: #ff4136; }
-.validation-section.warning  { border-color: #ff851b; }
-.validation-section.info     { border-color: #0074d9; }
+.validation-section.critical { border-color: var(--diag-critical); }
+.validation-section.warning  { border-color: var(--diag-warning); }
+.validation-section.info     { border-color: var(--diag-info); }
 
 .validation-item {
   margin: 0.3rem 0;
   font-size: 0.95em;
 }
 
-/* Stat cards grid */
+/* ===================================================================
+   Stat cards grid (dashboard)
+   =================================================================== */
+
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
@@ -47,8 +112,8 @@
   text-align: center;
   padding: 1rem;
   border-radius: 8px;
-  background: var(--pico-card-background-color);
-  border: 1px solid var(--pico-muted-border-color);
+  background: var(--diag-surface);
+  border: 1px solid var(--diag-border);
 }
 .stat-card .stat-value {
   font-size: 2rem;
@@ -57,12 +122,15 @@
 }
 .stat-card .stat-label {
   font-size: 0.85rem;
-  color: var(--pico-muted-color);
+  color: var(--diag-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-/* Component type cards */
+/* ===================================================================
+   Component type cards (dashboard)
+   =================================================================== */
+
 .type-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -74,8 +142,8 @@
   text-align: center;
   padding: 1.25rem 0.75rem;
   border-radius: 8px;
-  background: var(--pico-card-background-color);
-  border: 1px solid var(--pico-muted-border-color);
+  background: var(--diag-surface);
+  border: 1px solid var(--diag-border);
   text-decoration: none;
   transition: border-color 0.2s;
 }
@@ -89,40 +157,55 @@
 }
 .type-card .type-count {
   font-size: 0.85rem;
-  color: var(--pico-muted-color);
+  color: var(--diag-muted);
 }
 
-/* Flash messages */
+/* ===================================================================
+   Flash messages
+   =================================================================== */
+
 .flash {
   padding: 0.75rem 1rem;
   border-radius: 4px;
   margin-bottom: 1rem;
   font-size: 0.95em;
 }
-.flash-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-.flash-error   { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-.flash-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+.flash-success { background: var(--diag-pass-bg); color: #155724; border: 1px solid #c3e6cb; }
+.flash-error   { background: var(--diag-critical-bg); color: #721c24; border: 1px solid #f5c6cb; }
+.flash-warning { background: var(--diag-warning-bg); color: #856404; border: 1px solid #ffeeba; }
 
-/* Validation report area */
+/* ===================================================================
+   Validation report area
+   =================================================================== */
+
 #validation-results {
   min-height: 2rem;
 }
 
-/* Detail page spec table */
+/* ===================================================================
+   Detail page spec table
+   =================================================================== */
+
 .spec-table td:first-child {
   font-weight: 600;
   white-space: nowrap;
   width: 40%;
 }
 
-/* Empty state */
+/* ===================================================================
+   Empty state
+   =================================================================== */
+
 .empty-state {
   text-align: center;
   padding: 3rem 1rem;
-  color: var(--pico-muted-color);
+  color: var(--diag-muted);
 }
 
-/* Config history in fleet detail */
+/* ===================================================================
+   Config history in fleet detail
+   =================================================================== */
+
 #config-history table {
   font-size: 0.9em;
 }
@@ -132,7 +215,1075 @@
   margin-top: 1rem;
 }
 
-/* Diagnose page */
+/* ===================================================================
+   DIAGNOSTIC PAGE — Step Wizard
+   =================================================================== */
+
+.diag-page {
+  max-width: 100%;
+}
+
+/* Step indicator bar */
+.diag-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 0;
+  flex-wrap: wrap;
+}
+
+.diag-step {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--diag-muted);
+  transition: all 0.3s ease;
+  cursor: default;
+}
+
+.diag-step.active {
+  color: var(--pico-primary);
+  font-weight: 600;
+}
+
+.diag-step.completed {
+  color: var(--diag-pass);
+}
+
+.diag-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.diag-step.active .diag-step-num {
+  background: var(--pico-primary);
+  color: #fff;
+  border-color: var(--pico-primary);
+}
+
+.diag-step.completed .diag-step-num {
+  background: var(--diag-pass);
+  color: #fff;
+  border-color: var(--diag-pass);
+}
+
+.diag-step-label {
+  white-space: nowrap;
+}
+
+.diag-step-divider {
+  width: 1.5rem;
+  height: 2px;
+  background: var(--diag-border);
+  flex-shrink: 0;
+}
+
+/* Panels */
+.diag-panel {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.diag-panel-hidden {
+  display: none;
+}
+
+.diag-panel-visible {
+  display: block;
+  animation: diagFadeIn 0.3s ease;
+}
+
+@keyframes diagFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Step action buttons */
+.diag-step-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.diag-step-actions button {
+  min-height: 2.75rem;
+  min-width: 7rem;
+  font-size: 0.95rem;
+}
+
+.diag-next-btn {
+  font-weight: 600;
+}
+
+/* ===================================================================
+   DIAGNOSTIC PAGE — Drone Info Card
+   =================================================================== */
+
+.drone-info-card {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--diag-border);
+  border-radius: 8px;
+  background: var(--diag-surface);
+  margin-top: 0.75rem;
+}
+
+.drone-info-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.4rem;
+}
+
+.drone-nickname {
+  color: var(--diag-muted);
+  font-size: 0.9em;
+}
+
+.drone-info-details {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.drone-info-item {
+  font-size: 0.85rem;
+}
+
+.drone-info-label {
+  color: var(--diag-muted);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: block;
+}
+
+/* ===================================================================
+   DIAGNOSTIC PAGE — Config Loading
+   =================================================================== */
+
+.diag-config-options {
+  display: flex;
+  gap: 1rem;
+  align-items: stretch;
+  margin-bottom: 1rem;
+}
+
+.diag-config-option {
+  flex: 1;
+  padding: 1rem;
+  border: 1px solid var(--diag-border);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.diag-config-option h4 {
+  margin-bottom: 0.4rem;
+  font-size: 1rem;
+}
+
+.diag-config-option p {
+  font-size: 0.85rem;
+  color: var(--diag-muted);
+  margin-bottom: 0.75rem;
+}
+
+.diag-config-btn {
+  width: 100%;
+  min-height: 2.75rem;
+}
+
+.diag-config-divider {
+  display: flex;
+  align-items: center;
+  padding: 0 0.25rem;
+  color: var(--diag-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Upload area */
+.diag-upload-area {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px dashed var(--diag-border);
+  border-radius: 8px;
+}
+
+.diag-upload-area textarea {
+  font-family: Menlo, Monaco, 'Courier New', monospace;
+  font-size: 0.85rem;
+}
+
+.diag-upload-controls {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.diag-file-label {
+  font-size: 0.85rem;
+}
+
+/* Config status card */
+.diag-config-status {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--diag-pass);
+  border-left: 4px solid var(--diag-pass);
+  border-radius: 6px;
+  background: var(--diag-pass-bg);
+  margin-top: 0.75rem;
+}
+
+.diag-config-status-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.diag-config-check {
+  color: var(--diag-pass);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.diag-config-status-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.25rem 1rem;
+}
+
+.diag-config-detail {
+  font-size: 0.85rem;
+}
+
+.diag-config-detail-label {
+  font-weight: 600;
+  color: #155724;
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.diag-config-error {
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--diag-critical);
+  border-radius: 6px;
+  background: var(--diag-critical-bg);
+  margin-top: 0.75rem;
+}
+
+.diag-raw-config {
+  margin-top: 0.75rem;
+}
+
+.diag-raw-config summary {
+  cursor: pointer;
+  color: var(--pico-primary);
+  font-size: 0.85rem;
+}
+
+.diag-raw-config pre {
+  max-height: 300px;
+  overflow: auto;
+  font-size: 0.8em;
+  margin-top: 0.5rem;
+}
+
+/* ===================================================================
+   DIAGNOSTIC PAGE — Symptom Input
+   =================================================================== */
+
+.diag-symptom-input-area label {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.diag-autocomplete-wrap {
+  position: relative;
+}
+
+.diag-autocomplete-wrap input {
+  width: 100%;
+}
+
+/* Symptom suggestions dropdown */
+.symptom-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--diag-surface);
+  border: 1px solid var(--diag-border);
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.symptom-suggestion {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--diag-border);
+  transition: background 0.15s;
+}
+
+.symptom-suggestion:last-child {
+  border-bottom: none;
+}
+
+.symptom-suggestion:hover {
+  background: var(--diag-info-bg);
+}
+
+.symptom-suggestion strong {
+  display: block;
+  margin-bottom: 0.1rem;
+}
+
+.suggestion-desc {
+  font-size: 0.8rem;
+  color: var(--diag-muted);
+}
+
+.symptom-suggestion-empty {
+  padding: 0.6rem 0.75rem;
+  color: var(--diag-muted);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.diag-symptom-or {
+  text-align: center;
+  padding: 0.5rem 0;
+  color: var(--diag-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Selected symptom tags */
+.diag-selected-symptoms {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
+
+.diag-symptom-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3em 0.6em;
+  background: var(--diag-symptom-bg);
+  color: var(--diag-symptom);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.diag-symptom-remove {
+  background: none;
+  border: none;
+  color: var(--diag-symptom);
+  cursor: pointer;
+  font-size: 1.1em;
+  line-height: 1;
+  padding: 0 0.1em;
+  margin: 0;
+  width: auto;
+  min-height: 0;
+}
+
+.diag-symptom-remove:hover {
+  color: var(--diag-critical);
+}
+
+/* ===================================================================
+   DIAGNOSTIC PAGE — Progress Display (SocketIO)
+   =================================================================== */
+
+.diag-progress-header {
+  margin-bottom: 1rem;
+}
+
+.diag-progress-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.diag-progress-title > span:first-child {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.diag-fc-badge {
+  display: inline-block;
+  padding: 0.15em 0.5em;
+  background: var(--diag-info-bg);
+  color: var(--diag-info);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Progress bar */
+.diag-progress-bar-wrap {
+  width: 100%;
+  height: 6px;
+  background: var(--diag-border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.diag-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: var(--pico-primary);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+/* Section groups */
+.diag-section-group {
+  margin-bottom: 1rem;
+}
+
+.diag-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-bottom: 1px solid var(--diag-border);
+  margin-bottom: 0.5rem;
+}
+
+.diag-section-header small {
+  font-weight: 400;
+  color: var(--diag-muted);
+}
+
+.diag-section-spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+}
+
+.diag-section-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.diag-section-icon.diag-icon-pass {
+  background: var(--diag-pass);
+}
+
+.diag-section-icon.diag-icon-warning {
+  background: var(--diag-warning);
+}
+
+/* Check rows */
+.diag-check-row {
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  transition: background 0.2s;
+}
+
+.diag-check-row:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.diag-check-failed {
+  background: rgba(231, 76, 60, 0.04);
+}
+
+.diag-check-failed:hover {
+  background: rgba(231, 76, 60, 0.08);
+}
+
+/* Check result enter animation */
+.diag-check-enter {
+  animation: checkSlideIn 0.3s ease;
+}
+
+@keyframes checkSlideIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Check icons */
+.diag-check-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.diag-icon-spinner {
+  border: 2px solid var(--diag-border);
+  border-top-color: var(--pico-primary);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.diag-icon-pass {
+  background: var(--diag-pass);
+  color: #fff;
+}
+
+.diag-icon-critical {
+  background: var(--diag-critical);
+  color: #fff;
+}
+
+.diag-icon-warning {
+  background: var(--diag-warning);
+  color: #fff;
+}
+
+.diag-icon-info {
+  background: var(--diag-info);
+  color: #fff;
+}
+
+.diag-icon-skip {
+  background: var(--diag-skip);
+  color: #fff;
+}
+
+.diag-check-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.diag-check-badge {
+  flex-shrink: 0;
+}
+
+/* Check details (expanded on failed checks) */
+.diag-check-details {
+  width: 100%;
+  padding: 0.5rem 0 0 1.7rem;
+  font-size: 0.85rem;
+}
+
+.diag-check-message {
+  margin-bottom: 0.4rem;
+  color: var(--pico-color);
+}
+
+.diag-check-comparison {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.diag-compare-label {
+  font-weight: 600;
+  margin-right: 0.3rem;
+}
+
+.diag-check-fix {
+  padding: 0.4rem 0.6rem;
+  background: var(--diag-warning-bg);
+  border-radius: 4px;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.diag-check-batch {
+  color: var(--diag-muted);
+  font-style: italic;
+}
+
+/* Copy button */
+.diag-copy-btn {
+  font-size: 0.75rem !important;
+  padding: 0.2em 0.5em !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+}
+
+/* ===================================================================
+   DIAGNOSTIC PAGE — Summary Card
+   =================================================================== */
+
+.diag-summary-card {
+  padding: 1.25rem;
+  border-radius: 8px;
+  border: 2px solid;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.diag-health-good {
+  border-color: var(--diag-pass);
+  background: var(--diag-pass-bg);
+}
+
+.diag-health-attention {
+  border-color: var(--diag-warning);
+  background: var(--diag-warning-bg);
+}
+
+.diag-health-critical {
+  border-color: var(--diag-critical);
+  background: var(--diag-critical-bg);
+}
+
+.diag-summary-health {
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.diag-health-good .diag-summary-health { color: #155724; }
+.diag-health-attention .diag-summary-health { color: #856404; }
+.diag-health-critical .diag-summary-health { color: #721c24; }
+
+.diag-summary-title {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.1rem;
+}
+
+.diag-summary-subtitle {
+  font-size: 0.85rem;
+  color: var(--diag-muted);
+  margin-bottom: 0.75rem;
+}
+
+.diag-summary-counts {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.diag-count-badge {
+  display: inline-block;
+  padding: 0.2em 0.6em;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.diag-count-critical { background: var(--diag-critical); color: #fff; }
+.diag-count-warning  { background: var(--diag-warning); color: #fff; }
+.diag-count-info     { background: var(--diag-info); color: #fff; }
+.diag-count-pass     { background: var(--diag-pass); color: #fff; }
+
+.diag-summary-changes {
+  text-align: left;
+  margin-top: 0.75rem;
+}
+
+.diag-summary-changes summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.diag-summary-changes ul {
+  font-size: 0.8rem;
+}
+
+/* ===================================================================
+   DIAGNOSTIC PAGE — Report (htmx fallback)
+   =================================================================== */
+
+.diag-report {
+  margin-bottom: 1rem;
+}
+
+.diag-report-header {
+  margin-bottom: 0.75rem;
+}
+
+.diag-report-subtitle {
+  font-size: 0.85rem;
+  color: var(--diag-muted);
+}
+
+.diag-report-section {
+  margin-bottom: 1rem;
+}
+
+/* Finding group (collapsible) */
+.diag-finding-group {
+  border: 1px solid var(--diag-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.diag-finding-group > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.diag-finding-group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.diag-group-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.75rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--diag-border);
+  flex-wrap: wrap;
+}
+
+.diag-group-header::before {
+  content: '\25B6';
+  font-size: 0.6rem;
+  transition: transform 0.2s;
+}
+
+details[open] > .diag-group-header::before {
+  transform: rotate(90deg);
+}
+
+.diag-group-symptom { background: var(--diag-symptom-bg); border-color: var(--diag-symptom); }
+.diag-group-critical { background: var(--diag-critical-bg); border-color: var(--diag-critical); }
+.diag-group-warning  { background: var(--diag-warning-bg); border-color: var(--diag-warning); }
+.diag-group-info     { background: var(--diag-info-bg); border-color: var(--diag-info); }
+
+.diag-group-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.12);
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-left: auto;
+}
+
+/* Finding card */
+.diag-finding-card {
+  border-bottom: 1px solid var(--diag-border);
+  transition: background 0.15s;
+}
+
+.diag-finding-card:last-child {
+  border-bottom: none;
+}
+
+.diag-finding-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  flex-wrap: wrap;
+  min-height: 2.5rem;
+}
+
+.diag-finding-header:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.diag-finding-id {
+  font-family: Menlo, Monaco, 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: var(--diag-muted);
+}
+
+.diag-finding-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9rem;
+}
+
+.diag-finding-expand-icon::after {
+  content: '\25B6';
+  font-size: 0.55rem;
+  color: var(--diag-muted);
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.diag-finding-expanded .diag-finding-expand-icon::after {
+  transform: rotate(90deg);
+}
+
+/* Finding body (hidden by default, shown when expanded) */
+.diag-finding-body {
+  display: none;
+  padding: 0.25rem 0.75rem 0.75rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.diag-finding-expanded .diag-finding-body {
+  display: block;
+  animation: diagFadeIn 0.2s ease;
+}
+
+.diag-finding-message {
+  margin-bottom: 0.5rem;
+}
+
+.diag-finding-fix {
+  padding: 0.5rem 0.75rem;
+  background: var(--diag-warning-bg);
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+
+.diag-fix-steps {
+  margin: 0.25rem 0 0 1rem;
+  padding: 0;
+  font-size: 0.85rem;
+}
+
+.diag-fix-steps li {
+  margin-bottom: 0.15rem;
+}
+
+.diag-category-badge {
+  display: inline-block;
+  padding: 0.1em 0.4em;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  background: var(--diag-border);
+  color: var(--diag-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* All-clear state */
+.diag-all-clear {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  border: 2px solid var(--diag-pass);
+  border-radius: 8px;
+  background: var(--diag-pass-bg);
+}
+
+.diag-all-clear-icon {
+  display: block;
+  font-size: 2rem;
+  color: var(--diag-pass);
+  margin-bottom: 0.25rem;
+}
+
+.diag-all-clear strong {
+  color: #155724;
+}
+
+.diag-all-clear p {
+  color: #155724;
+  font-size: 0.9rem;
+  margin: 0.25rem 0 0;
+}
+
+.diag-no-changes {
+  color: var(--diag-muted);
+  font-size: 0.85rem;
+}
+
+/* Discrepancy resolution fieldset */
+.diag-disc-resolution fieldset {
+  border: none;
+  padding: 0.5rem 0 0;
+  margin: 0;
+}
+
+.diag-disc-resolution label {
+  display: block;
+  font-size: 0.85rem;
+  margin-bottom: 0.2rem;
+  cursor: pointer;
+  padding: 0.2rem 0;
+}
+
+/* Result actions */
+.diag-result-actions {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 0;
+  flex-wrap: wrap;
+}
+
+.diag-result-actions button {
+  min-height: 2.75rem;
+  min-width: 7rem;
+}
+
+/* ===================================================================
+   MOBILE — responsive adjustments
+   =================================================================== */
+
+@media (max-width: 768px) {
+  /* Step indicator: compact on mobile */
+  .diag-step-label {
+    display: none;
+  }
+
+  .diag-step-divider {
+    width: 0.75rem;
+  }
+
+  .diag-step-num {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.85rem;
+  }
+
+  /* Config options: stack vertically */
+  .diag-config-options {
+    flex-direction: column;
+  }
+
+  .diag-config-divider {
+    justify-content: center;
+    padding: 0.25rem 0;
+  }
+
+  /* Buttons: full width on mobile */
+  .diag-step-actions {
+    flex-direction: column;
+  }
+
+  .diag-step-actions button {
+    width: 100%;
+    min-height: 3rem;
+    font-size: 1rem;
+  }
+
+  .diag-result-actions {
+    flex-direction: column;
+  }
+
+  .diag-result-actions button {
+    width: 100%;
+    min-height: 3rem;
+  }
+
+  /* Touch-friendly check rows */
+  .diag-check-row {
+    padding: 0.6rem 0.5rem;
+    min-height: 2.75rem;
+  }
+
+  .diag-finding-header {
+    min-height: 3rem;
+    padding: 0.6rem 0.75rem;
+  }
+
+  /* Summary card: tighter */
+  .diag-summary-card {
+    padding: 1rem 0.75rem;
+  }
+
+  .diag-summary-health {
+    font-size: 1.1rem;
+  }
+
+  /* Stat grid: fewer columns on mobile */
+  .stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Config status card: stack details */
+  .diag-config-status-details {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Symptom suggestions: larger targets */
+  .symptom-suggestion {
+    padding: 0.75rem;
+    min-height: 2.75rem;
+  }
+
+  /* Drone info details: stack */
+  .drone-info-details {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .diag-config-status-details {
+    grid-template-columns: 1fr;
+  }
+
+  .diag-check-comparison {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .diag-summary-counts {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+/* ===================================================================
+   Existing legacy styles (kept for backward compatibility)
+   =================================================================== */
+
 .symptom-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -148,11 +1299,11 @@
   border-radius: 4px;
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
-  background: var(--pico-card-background-color);
+  background: var(--diag-surface);
 }
-.discrepancy-card.critical { border-color: #ff4136; }
-.discrepancy-card.warning  { border-color: #ff851b; }
-.discrepancy-card.info     { border-color: #0074d9; }
+.discrepancy-card.critical { border-color: var(--diag-critical); }
+.discrepancy-card.warning  { border-color: var(--diag-warning); }
+.discrepancy-card.info     { border-color: var(--diag-info); }
 
 .discrepancy-header {
   margin-bottom: 0.5rem;

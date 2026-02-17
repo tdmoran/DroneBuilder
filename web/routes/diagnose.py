@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import time
+import threading
 
 from flask import Blueprint, abort, jsonify, render_template, request
 
@@ -10,10 +12,252 @@ from core.config_store import list_configs, load_config, save_config
 from core.fleet import FLEET_DIR, load_fleet, load_fleet_drone, name_to_filename
 from engines.diagnose import run_diagnostics
 from engines.discrepancy import detect_discrepancies
-from engines.symptom_map import FIX_SUGGESTIONS, SYMPTOMS
+from engines.symptom_map import (
+    FIX_SUGGESTIONS,
+    SYMPTOMS,
+    SYMPTOM_DESCRIPTIONS,
+    match_symptom,
+)
 from fc_serial.config_parser import parse_diff_all
 
 diagnose_bp = Blueprint("diagnose", __name__)
+
+# SocketIO instance — set by init_diagnose_socketio() from app.py
+_socketio = None
+
+
+def init_diagnose_socketio(socketio) -> None:
+    """Register SocketIO event handlers for real-time diagnostic progress."""
+    global _socketio
+    _socketio = socketio
+
+    @socketio.on("connect", namespace="/diagnose")
+    def handle_connect():
+        socketio.emit(
+            "diag_status",
+            {"status": "connected"},
+            namespace="/diagnose",
+        )
+
+    @socketio.on("start_scan", namespace="/diagnose")
+    def handle_start_scan(data):
+        """Run diagnostics with real-time progress events via SocketIO."""
+        drone_filename = data.get("drone_filename", "")
+        raw_text = data.get("raw_text", "")
+        symptoms = data.get("symptoms", [])
+        sid = request.sid
+
+        if not drone_filename or not raw_text.strip():
+            socketio.emit(
+                "scan_error",
+                {"error": "Missing drone selection or FC config."},
+                namespace="/diagnose",
+                to=sid,
+            )
+            return
+
+        # Run in a background thread so we can emit progress events
+        def run_scan():
+            try:
+                _run_scan_with_progress(
+                    socketio, sid, drone_filename, raw_text, symptoms
+                )
+            except Exception as exc:
+                socketio.emit(
+                    "scan_error",
+                    {"error": str(exc)},
+                    namespace="/diagnose",
+                    to=sid,
+                )
+
+        thread = threading.Thread(target=run_scan, daemon=True)
+        thread.start()
+
+
+def _run_scan_with_progress(socketio, sid, drone_filename, raw_text, symptoms):
+    """Execute the diagnostic pipeline, emitting progress events at each step."""
+    from engines.compatibility import validate_build
+    from engines.firmware_validator import validate_firmware_config
+
+    ns = "/diagnose"
+
+    def emit(event, data):
+        socketio.emit(event, data, namespace=ns, to=sid)
+
+    # Load drone
+    filepath = FLEET_DIR / f"{drone_filename}.json"
+    if not filepath.exists():
+        emit("scan_error", {"error": f"Drone '{drone_filename}' not found."})
+        return
+
+    with open(filepath) as f:
+        drone_data = json.load(f)
+    drone = load_fleet_drone(drone_data, source_file=str(filepath))
+    config = parse_diff_all(raw_text)
+
+    fc_info = f"{config.firmware} {config.firmware_version}"
+    if config.board_name:
+        fc_info += f" on {config.board_name}"
+
+    emit("scan_started", {
+        "build_name": drone.name,
+        "fc_info": fc_info,
+        "symptoms": symptoms,
+    })
+
+    # --- Phase 1: Discrepancy Detection ---
+    emit("section_started", {"section": "discrepancy", "label": "Hardware Discrepancy Check"})
+    time.sleep(0.1)
+
+    emit("check_started", {"id": "disc_scan", "name": "Scanning for hardware mismatches"})
+    discrepancies = detect_discrepancies(config, drone)
+    time.sleep(0.1)
+
+    for disc in discrepancies:
+        emit("check_complete", {
+            "id": disc.id,
+            "name": f"{disc.component_type.capitalize()} check",
+            "passed": False,
+            "severity": disc.severity.value,
+            "message": disc.message,
+            "fix": disc.fix_suggestion,
+            "category": "discrepancy",
+            "fleet_value": disc.fleet_value,
+            "detected_value": disc.detected_value,
+        })
+        time.sleep(0.05)
+
+    if not discrepancies:
+        emit("check_complete", {
+            "id": "disc_scan",
+            "name": "Hardware discrepancy scan",
+            "passed": True,
+            "severity": "info",
+            "message": "FC config matches fleet record",
+            "category": "discrepancy",
+        })
+
+    emit("section_complete", {
+        "section": "discrepancy",
+        "total": len(discrepancies),
+        "issues": len(discrepancies),
+    })
+
+    # --- Phase 2: Compatibility Validation ---
+    emit("section_started", {"section": "compatibility", "label": "Component Compatibility"})
+    time.sleep(0.1)
+
+    emit("check_started", {"id": "compat_scan", "name": "Running compatibility rules"})
+    compatibility_report = validate_build(drone)
+    time.sleep(0.1)
+
+    compat_failures = [r for r in compatibility_report.results if not r.passed]
+    compat_passes = [r for r in compatibility_report.results if r.passed]
+
+    for result in compat_failures:
+        emit("check_complete", {
+            "id": result.constraint_id,
+            "name": result.constraint_name,
+            "passed": False,
+            "severity": result.severity.value,
+            "message": result.message,
+            "fix": FIX_SUGGESTIONS.get(result.constraint_id, ""),
+            "category": "compatibility",
+        })
+        time.sleep(0.05)
+
+    # Report passed checks as a batch
+    if compat_passes:
+        emit("checks_passed_batch", {
+            "category": "compatibility",
+            "count": len(compat_passes),
+            "ids": [r.constraint_id for r in compat_passes[:5]],
+        })
+
+    emit("section_complete", {
+        "section": "compatibility",
+        "total": len(compatibility_report.results),
+        "issues": len(compat_failures),
+    })
+
+    # --- Phase 3: Firmware Validation ---
+    emit("section_started", {"section": "firmware", "label": "Firmware Configuration"})
+    time.sleep(0.1)
+
+    emit("check_started", {"id": "fw_scan", "name": "Validating firmware settings"})
+    firmware_report = validate_firmware_config(config, drone)
+    time.sleep(0.1)
+
+    fw_failures = [r for r in firmware_report.results if not r.passed]
+    fw_passes = [r for r in firmware_report.results if r.passed]
+
+    for result in fw_failures:
+        emit("check_complete", {
+            "id": result.constraint_id,
+            "name": result.constraint_name,
+            "passed": False,
+            "severity": result.severity.value,
+            "message": result.message,
+            "fix": FIX_SUGGESTIONS.get(result.constraint_id, ""),
+            "category": "firmware",
+        })
+        time.sleep(0.05)
+
+    if fw_passes:
+        emit("checks_passed_batch", {
+            "category": "firmware",
+            "count": len(fw_passes),
+            "ids": [r.constraint_id for r in fw_passes[:5]],
+        })
+
+    emit("section_complete", {
+        "section": "firmware",
+        "total": len(firmware_report.results),
+        "issues": len(fw_failures),
+    })
+
+    # --- Phase 4: Config Diff ---
+    config_changes = None
+    configs = list_configs(drone_filename)
+    if len(configs) >= 2:
+        prev_result = load_config(drone_filename, configs[1].timestamp)
+        if prev_result:
+            from engines.diagnose import diff_configs
+            _, previous_config = prev_result
+            config_changes = diff_configs(previous_config, config)
+
+    # --- Summary ---
+    total_issues = len(discrepancies) + len(compat_failures) + len(fw_failures)
+    critical_count = (
+        sum(1 for d in discrepancies if d.severity.value == "critical")
+        + sum(1 for r in compat_failures if r.severity.value == "critical")
+        + sum(1 for r in fw_failures if r.severity.value == "critical")
+    )
+    warning_count = (
+        sum(1 for d in discrepancies if d.severity.value == "warning")
+        + sum(1 for r in compat_failures if r.severity.value == "warning")
+        + sum(1 for r in fw_failures if r.severity.value == "warning")
+    )
+    info_count = total_issues - critical_count - warning_count
+
+    if critical_count > 0:
+        health = "CRITICAL"
+    elif warning_count > 0:
+        health = "ATTENTION"
+    else:
+        health = "GOOD"
+
+    emit("scan_complete", {
+        "build_name": drone.name,
+        "fc_info": fc_info,
+        "health": health,
+        "total_issues": total_issues,
+        "critical": critical_count,
+        "warnings": warning_count,
+        "info": info_count,
+        "config_changes": config_changes,
+        "passed_checks": len(compat_passes) + len(fw_passes),
+    })
 
 
 def _load_drone(filename: str):
@@ -43,7 +287,67 @@ def index():
         "diagnose/diagnose.html",
         fleet=fleet,
         symptoms=SYMPTOMS,
+        symptom_descriptions=SYMPTOM_DESCRIPTIONS,
         selected_drone=selected,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Symptom matching (htmx autocomplete)
+# ---------------------------------------------------------------------------
+
+
+@diagnose_bp.route("/match-symptom")
+def match_symptom_route():
+    """Return matching symptoms as an htmx partial for autocomplete."""
+    query = request.args.get("q", "").strip()
+
+    if len(query) < 2:
+        return ""
+
+    matches = match_symptom(query)
+
+    if not matches:
+        return '<div class="symptom-suggestion-empty">No matching issues found</div>'
+
+    html_parts = []
+    for symptom_id, confidence in matches:
+        label = SYMPTOMS.get(symptom_id, symptom_id)
+        desc = SYMPTOM_DESCRIPTIONS.get(symptom_id, "")
+        # Truncate description for the suggestion
+        short_desc = desc[:80] + "..." if len(desc) > 80 else desc
+        html_parts.append(
+            f'<button type="button" class="symptom-suggestion" '
+            f'data-symptom-id="{symptom_id}" '
+            f'data-symptom-label="{label}" '
+            f'onclick="selectSymptomSuggestion(this)">'
+            f'<strong>{label}</strong>'
+            f'<span class="suggestion-desc">{short_desc}</span>'
+            f'</button>'
+        )
+
+    return '<div class="symptom-suggestions">' + "".join(html_parts) + "</div>"
+
+
+# ---------------------------------------------------------------------------
+# Drone info partial (htmx)
+# ---------------------------------------------------------------------------
+
+
+@diagnose_bp.route("/drone-info/<filename>")
+def drone_info(filename: str):
+    """Return a drone info card as an htmx partial."""
+    drone, data = _load_drone(filename)
+
+    comp_count = len([k for k in data.keys() if k not in (
+        "name", "drone_class", "status", "nickname", "notes", "tags",
+        "acquired_date", "component_status",
+    )])
+
+    return render_template(
+        "diagnose/_drone_info.html",
+        drone=drone,
+        comp_count=comp_count,
     )
 
 
@@ -89,6 +393,8 @@ def read_config():
             "firmware": config.firmware,
             "firmware_version": config.firmware_version,
             "board_name": config.board_name,
+            "features_count": len(config.features),
+            "serial_ports_count": len(config.serial_ports),
             "stored_timestamp": stored_ts,
         })
     except Exception as exc:
@@ -133,6 +439,8 @@ def upload_config():
         "firmware": config.firmware,
         "firmware_version": config.firmware_version,
         "board_name": config.board_name,
+        "features_count": len(config.features),
+        "serial_ports_count": len(config.serial_ports),
         "stored_timestamp": stored_ts,
     })
 

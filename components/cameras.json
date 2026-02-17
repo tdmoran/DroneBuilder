@@ -1,0 +1,117 @@
+[
+  {
+    "id": "camera_caddx_ratel2",
+    "manufacturer": "Caddx",
+    "model": "Ratel 2",
+    "weight_g": 7.8,
+    "price_usd": 24.99,
+    "category": "analog",
+    "specs": {
+      "sensor_size": "1/1.8\"",
+      "resolution": "1200TVL",
+      "fov_degrees": 165,
+      "min_illumination_lux": 0.0001,
+      "voltage_min_v": 5.0,
+      "voltage_max_v": 40.0,
+      "form_factor": "micro",
+      "width_mm": 19,
+      "aspect_ratio": "switchable",
+      "wdr": true,
+      "osd_overlay": true,
+      "ntsc_pal": "switchable",
+      "current_draw_5v_ma": 200
+    }
+  },
+  {
+    "id": "camera_runcam_phoenix2",
+    "manufacturer": "RunCam",
+    "model": "Phoenix 2",
+    "weight_g": 6.5,
+    "price_usd": 29.99,
+    "category": "analog",
+    "specs": {
+      "sensor_size": "1/2\"",
+      "resolution": "1000TVL",
+      "fov_degrees": 155,
+      "min_illumination_lux": 0.0001,
+      "voltage_min_v": 5.0,
+      "voltage_max_v": 36.0,
+      "form_factor": "micro",
+      "width_mm": 19,
+      "aspect_ratio": "switchable",
+      "wdr": true,
+      "osd_overlay": true,
+      "ntsc_pal": "switchable",
+      "current_draw_5v_ma": 180
+    }
+  },
+  {
+    "id": "camera_foxeer_razer_mini",
+    "manufacturer": "Foxeer",
+    "model": "Razer Mini",
+    "weight_g": 14.0,
+    "price_usd": 19.99,
+    "category": "analog",
+    "specs": {
+      "sensor_size": "1/3\"",
+      "resolution": "1200TVL",
+      "fov_degrees": 160,
+      "min_illumination_lux": 0.01,
+      "voltage_min_v": 5.0,
+      "voltage_max_v": 40.0,
+      "form_factor": "full",
+      "width_mm": 28,
+      "aspect_ratio": "switchable",
+      "wdr": true,
+      "osd_overlay": true,
+      "ntsc_pal": "switchable",
+      "current_draw_5v_ma": 220
+    }
+  },
+  {
+    "id": "camera_caddx_ant_lite",
+    "manufacturer": "Caddx",
+    "model": "Ant Lite",
+    "weight_g": 2.0,
+    "price_usd": 14.99,
+    "category": "analog",
+    "specs": {
+      "sensor_size": "1/3\"",
+      "resolution": "1200TVL",
+      "fov_degrees": 165,
+      "min_illumination_lux": 0.001,
+      "voltage_min_v": 3.3,
+      "voltage_max_v": 5.5,
+      "form_factor": "nano",
+      "width_mm": 14,
+      "aspect_ratio": "4:3",
+      "wdr": false,
+      "osd_overlay": false,
+      "ntsc_pal": "switchable",
+      "current_draw_5v_ma": 120
+    }
+  },
+  {
+    "id": "camera_runcam_nano4",
+    "manufacturer": "RunCam",
+    "model": "Nano 4",
+    "weight_g": 2.7,
+    "price_usd": 19.99,
+    "category": "analog",
+    "specs": {
+      "sensor_size": "1/3\"",
+      "resolution": "800TVL",
+      "fov_degrees": 155,
+      "min_illumination_lux": 0.001,
+      "voltage_min_v": 3.3,
+      "voltage_max_v": 5.5,
+      "form_factor": "nano",
+      "width_mm": 14,
+      "aspect_ratio": "switchable",
+      "wdr": true,
+      "osd_overlay": true,
+      "ntsc_pal": "switchable",
+      "current_draw_5v_ma": 130
+    }
+  }
+]

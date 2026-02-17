@@ -4,8 +4,15 @@ from __future__ import annotations
 
 import pytest
 
-from core.models import Build, Component, Severity
-from engines.diagnose import DiagnosticReport, diff_configs, run_diagnostics
+from core.models import Build, Component, Discrepancy, Severity, ValidationResult
+from engines.diagnose import (
+    DiagnosticReport,
+    assign_confidence_scores,
+    compute_confidence,
+    diff_configs,
+    run_diagnostics,
+    run_quick_health_check,
+)
 from fc_serial.models import FCConfig, SerialPortConfig
 
 
@@ -245,3 +252,259 @@ class TestRunDiagnostics:
         disc_ids = {d.id for d in report.discrepancies}
         assert "disc_001" in disc_ids
         assert report.has_critical_issues
+
+    def test_confidence_scores_populated(self):
+        """run_diagnostics should populate confidence_scores on the report."""
+        config = _make_config(
+            board_name="IFLIGHT_BLITZ_F722",
+            master_settings={
+                "motor_pwm_protocol": "DSHOT1200",
+                "serialrx_provider": "SBUS",
+            },
+        )
+        build = _make_build(
+            fc=_make_component("fc", {"mcu": "STM32F405"}),
+            esc=_make_component("esc", {"protocol": "DShot600", "firmware": "BLHeli_S"}),
+            receiver=_make_component("receiver", {"output_protocol": "CRSF"}),
+        )
+
+        report = run_diagnostics(config, build)
+        assert len(report.confidence_scores) > 0
+
+        # disc_001 is CRITICAL discrepancy — should be 0.95
+        if "disc_001" in report.confidence_scores:
+            assert report.confidence_scores["disc_001"] == 0.95
+
+    def test_get_confidence(self):
+        """get_confidence should return score or None."""
+        config = _make_config(board_name="IFLIGHT_BLITZ_F722")
+        build = _make_build(
+            fc=_make_component("fc", {"mcu": "STM32F405"}),
+        )
+
+        report = run_diagnostics(config, build)
+        # disc_001 should exist
+        conf = report.get_confidence("disc_001")
+        assert conf is not None
+        assert 0.0 < conf <= 1.0
+
+        # nonexistent check should return None
+        assert report.get_confidence("nonexistent_check") is None
+
+
+# ---------------------------------------------------------------------------
+# Confidence scoring unit tests
+# ---------------------------------------------------------------------------
+
+
+class TestComputeConfidence:
+    """Unit tests for compute_confidence function."""
+
+    def test_critical_discrepancy(self):
+        disc = Discrepancy(
+            id="disc_001", component_type="fc", category="identity",
+            severity=Severity.CRITICAL, fleet_value="x", detected_value="y",
+            message="mismatch", fix_suggestion="fix",
+        )
+        assert compute_confidence(disc) == 0.95
+
+    def test_warning_discrepancy(self):
+        disc = Discrepancy(
+            id="disc_004", component_type="esc", category="protocol",
+            severity=Severity.WARNING, fleet_value="x", detected_value="y",
+            message="mismatch", fix_suggestion="fix",
+        )
+        assert compute_confidence(disc) == 0.85
+
+    def test_info_discrepancy(self):
+        disc = Discrepancy(
+            id="disc_007", component_type="fc", category="identity",
+            severity=Severity.INFO, fleet_value="x", detected_value="y",
+            message="name", fix_suggestion="fix",
+        )
+        assert compute_confidence(disc) == 0.70
+
+    def test_critical_firmware_result(self):
+        result = ValidationResult(
+            constraint_id="fw_001", constraint_name="Motor protocol",
+            severity=Severity.CRITICAL, passed=False,
+            message="mismatch",
+        )
+        assert compute_confidence(result) == 0.90
+
+    def test_warning_firmware_result(self):
+        result = ValidationResult(
+            constraint_id="fw_010", constraint_name="Battery min",
+            severity=Severity.WARNING, passed=False,
+            message="too low",
+        )
+        assert compute_confidence(result) == 0.80
+
+    def test_info_firmware_result(self):
+        result = ValidationResult(
+            constraint_id="fw_013", constraint_name="Gyro filter",
+            severity=Severity.INFO, passed=False,
+            message="high for whoop",
+        )
+        assert compute_confidence(result) == 0.70
+
+    def test_critical_electrical_result(self):
+        result = ValidationResult(
+            constraint_id="elec_001", constraint_name="Battery vs ESC",
+            severity=Severity.CRITICAL, passed=False,
+            message="over-voltage",
+        )
+        assert compute_confidence(result) == 0.90
+
+    def test_skipped_result(self):
+        result = ValidationResult(
+            constraint_id="fw_001", constraint_name="Motor protocol",
+            severity=Severity.CRITICAL, passed=True,
+            message="skipped", details={"skipped": True},
+        )
+        assert compute_confidence(result) == 0.0
+
+    def test_estimated_data_result(self):
+        result = ValidationResult(
+            constraint_id="fw_001", constraint_name="Motor protocol",
+            severity=Severity.CRITICAL, passed=False,
+            message="mismatch", details={"estimated": True},
+        )
+        assert compute_confidence(result) == 0.50
+
+    def test_missing_spec_result(self):
+        result = ValidationResult(
+            constraint_id="elec_003", constraint_name="ESC current",
+            severity=Severity.CRITICAL, passed=False,
+            message="undersized", details={"missing_spec": True},
+        )
+        assert compute_confidence(result) == 0.50
+
+
+# ---------------------------------------------------------------------------
+# Quick health check
+# ---------------------------------------------------------------------------
+
+
+class TestRunQuickHealthCheck:
+    """Tests for run_quick_health_check function."""
+
+    def test_quick_check_returns_report(self):
+        build = _make_build(
+            fc=_make_component("fc", {"mcu": "STM32F405"}),
+            esc=_make_component("esc", {"protocol": "DShot600"}),
+        )
+        config = _make_config(
+            master_settings={"motor_pwm_protocol": "DSHOT600"},
+        )
+
+        report = run_quick_health_check(build, fc_config=config)
+        assert report.is_quick_check is True
+        assert report.build_name == "Test Drone"
+
+    def test_quick_check_without_config(self):
+        """Quick check without FC config should still run compatibility checks."""
+        build = _make_build(
+            esc=_make_component("esc", {
+                "protocol": "DShot600",
+                "voltage_min_s": 3,
+                "voltage_max_s": 6,
+                "continuous_current_a": 50,
+            }),
+            battery=_make_component("battery", {"cell_count": 4}),
+        )
+
+        report = run_quick_health_check(build)
+        assert report.is_quick_check is True
+        assert report.firmware_report is None
+        assert len(report.discrepancies) == 0
+
+    def test_quick_check_detects_critical_discrepancy(self):
+        """Quick check should detect disc_001 through disc_004."""
+        config = _make_config(
+            board_name="IFLIGHT_BLITZ_F722",
+            master_settings={"serialrx_provider": "SBUS"},
+        )
+        build = _make_build(
+            fc=_make_component("fc", {"mcu": "STM32F405"}),
+            receiver=_make_component("receiver", {"output_protocol": "CRSF"}),
+        )
+
+        report = run_quick_health_check(build, fc_config=config)
+        disc_ids = {d.id for d in report.discrepancies}
+        # Should include disc_001 (FC board mismatch) and disc_002 (RX mismatch)
+        assert "disc_001" in disc_ids
+        assert "disc_002" in disc_ids
+        assert report.has_critical_issues
+
+    def test_quick_check_filters_firmware_checks(self):
+        """Quick check should only include the key firmware checks."""
+        config = _make_config(
+            master_settings={
+                "motor_pwm_protocol": "DSHOT600",
+                "serialrx_provider": "CRSF",
+                "vbat_min_cell_voltage": "250",  # Too low, fw_010 should catch
+            },
+            serial_ports=[
+                SerialPortConfig(port_id=1, function_mask=64, functions=["SERIAL_RX"]),
+            ],
+        )
+        build = _make_build(
+            esc=_make_component("esc", {"protocol": "DShot600"}),
+            receiver=_make_component("receiver", {"output_protocol": "CRSF"}),
+        )
+
+        report = run_quick_health_check(build, fc_config=config)
+
+        # Should have firmware report with only quick-check IDs
+        assert report.firmware_report is not None
+        fw_ids = {r.constraint_id for r in report.firmware_report.results}
+        # All firmware results should be in the quick set
+        quick_fw_ids = {"fw_001", "fw_004", "fw_005", "fw_010", "fw_011"}
+        assert fw_ids.issubset(quick_fw_ids)
+
+    def test_quick_check_safe_to_fly_true(self):
+        """Clean build should report safe_to_fly = True."""
+        config = _make_config(
+            master_settings={
+                "motor_pwm_protocol": "DSHOT600",
+                "serialrx_provider": "CRSF",
+            },
+            serial_ports=[
+                SerialPortConfig(port_id=1, function_mask=64, functions=["SERIAL_RX"]),
+            ],
+        )
+        build = _make_build(
+            fc=_make_component("fc", {"mcu": "STM32F405"}),
+            esc=_make_component("esc", {"protocol": "DShot600"}),
+            receiver=_make_component("receiver", {"output_protocol": "CRSF"}),
+        )
+
+        report = run_quick_health_check(build, fc_config=config)
+        assert report.safe_to_fly is True
+
+    def test_quick_check_safe_to_fly_false(self):
+        """Build with critical mismatch should report safe_to_fly = False."""
+        config = _make_config(
+            board_name="IFLIGHT_BLITZ_F722",
+        )
+        build = _make_build(
+            fc=_make_component("fc", {"mcu": "STM32F405"}),
+        )
+
+        report = run_quick_health_check(build, fc_config=config)
+        assert report.safe_to_fly is False
+
+    def test_quick_check_has_confidence_scores(self):
+        """Quick check should populate confidence scores."""
+        config = _make_config(
+            board_name="IFLIGHT_BLITZ_F722",
+        )
+        build = _make_build(
+            fc=_make_component("fc", {"mcu": "STM32F405"}),
+        )
+
+        report = run_quick_health_check(build, fc_config=config)
+        assert len(report.confidence_scores) > 0
+        # disc_001 should be in there
+        assert "disc_001" in report.confidence_scores

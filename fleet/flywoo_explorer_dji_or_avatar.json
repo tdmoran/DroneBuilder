@@ -1,0 +1,16 @@
+{
+  "name": "Flywoo Explorer DJI Or/Avatar",
+  "drone_class": "4inch",
+  "status": "active",
+  "nickname": "Flywoo LR4",
+  "notes": "4-inch long-range quad with Walksnail Avatar digital VTX. Great efficiency for long-range cruising.",
+  "tags": ["long-range", "4inch", "digital"],
+  "motor": "motor_flywoo_nin_1505_2350kv",
+  "esc": "esc_flywoo_goku_20a_4in1_20x20",
+  "fc": "fc_flywoo_goku_f405_mini",
+  "frame": "frame_flywoo_explorer_lr_4",
+  "propeller": "prop_gemfan_hurricane_4023",
+  "battery": "battery_gnb_750_4s_80c",
+  "vtx": "vtx_walksnail_avatar_hd_v2",
+  "receiver": "rx_happymodel_ep2_elrs_2_4ghz"
+}

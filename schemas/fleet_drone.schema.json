@@ -16,7 +16,9 @@
       "enum": [
         "5inch_freestyle",
         "5inch_race",
+        "4inch",
         "3inch",
+        "sub250",
         "whoop",
         "7inch_lr",
         "flying_wing",
@@ -114,6 +116,20 @@
       "oneOf": [
         { "type": "string" },
         { "type": "array", "items": { "oneOf": [{ "type": "string" }, { "type": "object" }] } },
+        { "type": "object" }
+      ]
+    },
+    "gps": {
+      "description": "GPS module component.",
+      "oneOf": [
+        { "type": "string" },
+        { "type": "object" }
+      ]
+    },
+    "camera": {
+      "description": "FPV camera component (standalone analog or digital-compatible camera, not VTX-integrated).",
+      "oneOf": [
+        { "type": "string" },
         { "type": "object" }
       ]
     },

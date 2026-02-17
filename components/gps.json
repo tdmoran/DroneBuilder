@@ -1,0 +1,107 @@
+[
+  {
+    "id": "gps_bn880",
+    "manufacturer": "BN",
+    "model": "BN-880 GPS + Compass",
+    "weight_g": 10.2,
+    "price_usd": 14.99,
+    "category": "standard",
+    "specs": {
+      "chip": "u-blox M8N",
+      "constellation": ["GPS", "GLONASS"],
+      "update_rate_hz": 10,
+      "uart_protocol": "UBX",
+      "voltage_min_v": 3.3,
+      "voltage_max_v": 5.0,
+      "has_compass": true,
+      "has_barometer": false,
+      "antenna_type": "ceramic",
+      "connector_type": "JST-GH 1.25mm",
+      "current_draw_5v_ma": 60
+    }
+  },
+  {
+    "id": "gps_matek_m10q_5883",
+    "manufacturer": "Matek",
+    "model": "M10Q-5883 GPS + Compass",
+    "weight_g": 8.5,
+    "price_usd": 24.99,
+    "category": "standard",
+    "specs": {
+      "chip": "u-blox M10",
+      "constellation": ["GPS", "Galileo", "BeiDou"],
+      "update_rate_hz": 25,
+      "uart_protocol": "UBX",
+      "voltage_min_v": 3.3,
+      "voltage_max_v": 5.0,
+      "has_compass": true,
+      "has_barometer": false,
+      "antenna_type": "ceramic",
+      "connector_type": "JST-GH 1.25mm",
+      "current_draw_5v_ma": 45
+    }
+  },
+  {
+    "id": "gps_betafpv_m10_gps",
+    "manufacturer": "BetaFPV",
+    "model": "M10 GPS Module",
+    "weight_g": 4.8,
+    "price_usd": 17.99,
+    "category": "micro",
+    "specs": {
+      "chip": "u-blox M10",
+      "constellation": ["GPS", "Galileo", "BeiDou"],
+      "update_rate_hz": 10,
+      "uart_protocol": "UBX",
+      "voltage_min_v": 3.0,
+      "voltage_max_v": 5.5,
+      "has_compass": false,
+      "has_barometer": false,
+      "antenna_type": "ceramic",
+      "connector_type": "solder pads",
+      "current_draw_5v_ma": 30
+    }
+  },
+  {
+    "id": "gps_flywoo_gm10_mini_v3",
+    "manufacturer": "Flywoo",
+    "model": "GM10 Mini V3 GPS",
+    "weight_g": 5.2,
+    "price_usd": 19.99,
+    "category": "mini",
+    "specs": {
+      "chip": "u-blox M10",
+      "constellation": ["GPS", "GLONASS", "Galileo", "BeiDou"],
+      "update_rate_hz": 25,
+      "uart_protocol": "UBX",
+      "voltage_min_v": 3.3,
+      "voltage_max_v": 5.0,
+      "has_compass": true,
+      "has_barometer": false,
+      "antenna_type": "ceramic",
+      "connector_type": "JST-SH 1.0mm",
+      "current_draw_5v_ma": 40
+    }
+  },
+  {
+    "id": "gps_speedybee_sp_gps",
+    "manufacturer": "SpeedyBee",
+    "model": "SP-GPS Module",
+    "weight_g": 9.8,
+    "price_usd": 12.99,
+    "category": "standard",
+    "specs": {
+      "chip": "u-blox M8N",
+      "constellation": ["GPS", "GLONASS"],
+      "update_rate_hz": 10,
+      "uart_protocol": "UBX",
+      "voltage_min_v": 3.3,
+      "voltage_max_v": 5.0,
+      "has_compass": true,
+      "has_barometer": false,
+      "antenna_type": "ceramic",
+      "connector_type": "JST-GH 1.25mm",
+      "current_draw_5v_ma": 55
+    }
+  }
+]

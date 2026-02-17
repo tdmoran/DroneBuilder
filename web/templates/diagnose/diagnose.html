@@ -2,149 +2,227 @@
 {% block title %}Diagnose — DroneBuilder{% endblock %}
 
 {% block content %}
-<h1>FC Diagnostic</h1>
-<p>Select a drone, load the FC config, pick the issue, and the system finds the fault.</p>
+<div class="diag-page">
+  <hgroup>
+    <h1>FC Diagnostic</h1>
+    <p>Select a drone, load the FC config, describe the issue, and run the scan.</p>
+  </hgroup>
 
-<form id="diagnose-form">
-  {# Step 1: Select drone #}
-  <article>
-    <header><strong>1. Select Drone</strong></header>
-    <select name="drone_filename" id="drone-select" required>
-      <option value="">-- Select a fleet drone --</option>
-      {% for drone in fleet %}
-      <option value="{{ drone.source_file.split('/')[-1].replace('.json', '') }}"
-        {% if selected_drone and selected_drone in drone.source_file %}selected{% endif %}>
-        {{ drone.name }}{% if drone.nickname %} ({{ drone.nickname }}){% endif %}
-        — {{ drone.drone_class }}
-      </option>
-      {% endfor %}
-    </select>
-  </article>
-
-  {# Step 2: FC Config #}
-  <article>
-    <header><strong>2. FC Config</strong></header>
-    <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
-      <button type="button" id="btn-read-fc"
-        hx-post="/diagnose/read-config"
-        hx-include="#diagnose-form"
-        hx-target="#config-status"
-        hx-indicator="#config-spinner">
-        Connect &amp; Read FC
-      </button>
-      <span>or</span>
-      <button type="button" id="btn-upload-toggle" class="outline" onclick="toggleUpload()">
-        Upload / Paste diff all
-      </button>
+  {# ---- Step indicator ---- #}
+  <div class="diag-steps" id="step-indicator">
+    <div class="diag-step active" data-step="1">
+      <span class="diag-step-num">1</span>
+      <span class="diag-step-label">Select Drone</span>
     </div>
+    <div class="diag-step-divider"></div>
+    <div class="diag-step" data-step="2">
+      <span class="diag-step-num">2</span>
+      <span class="diag-step-label">Load Config</span>
+    </div>
+    <div class="diag-step-divider"></div>
+    <div class="diag-step" data-step="3">
+      <span class="diag-step-num">3</span>
+      <span class="diag-step-label">Describe Issue</span>
+    </div>
+    <div class="diag-step-divider"></div>
+    <div class="diag-step" data-step="4">
+      <span class="diag-step-num">4</span>
+      <span class="diag-step-label">Results</span>
+    </div>
+  </div>
 
-    <div id="upload-area" style="display: none;">
-      <textarea name="raw_text" id="raw-text-input" rows="6"
-        placeholder="Paste your 'diff all' output here..."></textarea>
-      <div style="display: flex; gap: 1rem; align-items: center; margin-top: 0.5rem;">
-        <input type="file" name="diff_file" id="diff-file-input" accept=".txt,.log">
-        <button type="button" class="outline"
-          hx-post="/diagnose/upload-config"
-          hx-include="#diagnose-form"
-          hx-target="#config-status"
-          hx-encoding="multipart/form-data"
-          hx-indicator="#config-spinner">
-          Parse Config
+  <form id="diagnose-form">
+    {# ================================================================ #}
+    {# STEP 1: Select Drone                                             #}
+    {# ================================================================ #}
+    <article class="diag-panel" id="step-1-panel">
+      <header><strong>1. Select Drone</strong></header>
+      <select name="drone_filename" id="drone-select" required
+        hx-get="/diagnose/drone-info/{value}"
+        hx-trigger="change"
+        hx-target="#drone-preview">
+        <option value="">-- Select a fleet drone --</option>
+        {% for drone in fleet %}
+        <option value="{{ drone.source_file.split('/')[-1].replace('.json', '') }}"
+          {% if selected_drone and selected_drone in drone.source_file %}selected{% endif %}>
+          {{ drone.name }}{% if drone.nickname %} ({{ drone.nickname }}){% endif %}
+          — {{ drone.drone_class }}
+        </option>
+        {% endfor %}
+      </select>
+      <div id="drone-preview"></div>
+      <div class="diag-step-actions">
+        <button type="button" class="diag-next-btn" id="btn-next-1" disabled onclick="goToStep(2)">
+          Next: Load Config
         </button>
       </div>
+    </article>
+
+    {# ================================================================ #}
+    {# STEP 2: Load FC Config                                           #}
+    {# ================================================================ #}
+    <article class="diag-panel diag-panel-hidden" id="step-2-panel">
+      <header><strong>2. Load FC Config</strong></header>
+
+      <div class="diag-config-options">
+        <div class="diag-config-option">
+          <h4>Read from FC</h4>
+          <p>Connect to your flight controller via USB and read the configuration directly.</p>
+          <button type="button" id="btn-read-fc" class="diag-config-btn"
+            hx-post="/diagnose/read-config"
+            hx-include="#diagnose-form"
+            hx-target="#config-status"
+            hx-indicator="#config-spinner">
+            Connect &amp; Read FC
+          </button>
+        </div>
+        <div class="diag-config-divider">
+          <span>or</span>
+        </div>
+        <div class="diag-config-option">
+          <h4>Upload / Paste Config</h4>
+          <p>Paste your "diff all" output or upload a saved config file.</p>
+          <button type="button" id="btn-upload-toggle" class="diag-config-btn outline"
+            onclick="toggleUpload()">
+            Paste / Upload
+          </button>
+        </div>
+      </div>
+
+      <div id="upload-area" class="diag-upload-area" style="display: none;">
+        <textarea name="raw_text" id="raw-text-input" rows="5"
+          placeholder="Paste your 'diff all' output here..."></textarea>
+        <div class="diag-upload-controls">
+          <label class="diag-file-label">
+            <input type="file" name="diff_file" id="diff-file-input" accept=".txt,.log">
+            Choose file
+          </label>
+          <button type="button" class="outline" id="btn-parse-config"
+            hx-post="/diagnose/upload-config"
+            hx-include="#diagnose-form"
+            hx-target="#config-status"
+            hx-encoding="multipart/form-data"
+            hx-indicator="#config-spinner">
+            Parse Config
+          </button>
+        </div>
+      </div>
+
+      <div id="config-status">
+        <span id="config-spinner" class="htmx-indicator" aria-busy="true">Reading config...</span>
+      </div>
+
+      {# Hidden fields populated by JS after config load #}
+      <input type="hidden" name="config_loaded" id="config-loaded" value="">
+      <input type="hidden" name="raw_text" id="raw-text-hidden" value="">
+
+      <div class="diag-step-actions">
+        <button type="button" class="outline diag-back-btn" onclick="goToStep(1)">Back</button>
+        <button type="button" class="diag-next-btn" id="btn-next-2" disabled onclick="goToStep(3)">
+          Next: Describe Issue
+        </button>
+      </div>
+    </article>
+
+    {# ================================================================ #}
+    {# STEP 3: Describe Issue (optional)                                #}
+    {# ================================================================ #}
+    <article class="diag-panel diag-panel-hidden" id="step-3-panel">
+      <header><strong>3. Describe the Issue</strong> <small>(optional)</small></header>
+
+      <div class="diag-symptom-input-area">
+        {# Free-text input with autocomplete #}
+        <label for="symptom-text-input">Type your issue in plain language:</label>
+        <div class="diag-autocomplete-wrap">
+          <input type="text" id="symptom-text-input"
+            placeholder='e.g. "my motors won&#39;t spin" or "no video in goggles"'
+            autocomplete="off"
+            hx-get="/diagnose/match-symptom"
+            hx-trigger="keyup changed delay:300ms"
+            hx-target="#symptom-suggestions"
+            hx-params="*"
+            name="q">
+          <div id="symptom-suggestions"></div>
+        </div>
+
+        <div class="diag-symptom-or">
+          <span>or pick from common issues</span>
+        </div>
+
+        {# Dropdown selector #}
+        <select id="issue-select" onchange="selectDropdownSymptom(this)">
+          <option value="">-- Select a common issue --</option>
+          {% for key, label in symptoms.items() %}
+          <option value="{{ key }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+
+        {# Selected symptoms display #}
+        <div id="selected-symptoms" class="diag-selected-symptoms"></div>
+        {# Hidden inputs for selected symptoms (populated by JS) #}
+      </div>
+
+      <div class="diag-step-actions">
+        <button type="button" class="outline diag-back-btn" onclick="goToStep(2)">Back</button>
+        <button type="button" class="diag-next-btn" id="btn-run-scan" onclick="startDiagnostic()">
+          Run Diagnostic
+        </button>
+        <button type="button" class="outline" id="btn-skip-scan" onclick="startDiagnostic()">
+          Skip &mdash; Full Scan
+        </button>
+      </div>
+    </article>
+  </form>
+
+  {# ================================================================ #}
+  {# STEP 4: Results (populated by SocketIO or htmx)                  #}
+  {# ================================================================ #}
+  <div class="diag-panel diag-panel-hidden" id="step-4-panel">
+    <div id="diag-progress-container">
+      {# Progress header #}
+      <div id="diag-progress-header" class="diag-progress-header" style="display:none;">
+        <div class="diag-progress-title">
+          <span id="progress-build-name"></span>
+          <span id="progress-fc-info" class="diag-fc-badge"></span>
+        </div>
+        <div id="diag-progress-bar-wrap" class="diag-progress-bar-wrap">
+          <div id="diag-progress-bar" class="diag-progress-bar"></div>
+        </div>
+      </div>
+
+      {# Live check results #}
+      <div id="diag-live-checks"></div>
+
+      {# Summary card (shown at end) #}
+      <div id="diag-summary" class="diag-summary" style="display:none;"></div>
     </div>
 
-    <div id="config-status">
-      <span id="config-spinner" class="htmx-indicator" aria-busy="true">Reading config...</span>
+    {# Fallback: htmx-rendered results if SocketIO unavailable #}
+    <div id="discrepancy-results"></div>
+    <div id="diagnostic-results"></div>
+
+    {# Action buttons after results #}
+    <div id="diag-result-actions" class="diag-result-actions" style="display:none;">
+      <button type="button" onclick="resetDiagnostic()">Run Again</button>
+      <button type="button" class="outline" onclick="exportReport()">Export Report</button>
     </div>
-  </article>
+  </div>
+</div>
 
-  {# Hidden fields populated by JS after config load #}
-  <input type="hidden" name="config_loaded" id="config-loaded" value="">
-  <input type="hidden" name="raw_text" id="raw-text-hidden" value="">
-
-  {# Step 3: Issue selector — hidden until config loads #}
-  <article id="issue-section" style="display: none;">
-    <header><strong>3. What's the issue?</strong></header>
-    <select name="symptoms" id="issue-select">
-      <option value="">-- Select a common issue --</option>
-      {% for key, label in symptoms.items() %}
-      <option value="{{ key }}">{{ label }}</option>
-      {% endfor %}
-    </select>
-    <small style="color: var(--pico-muted-color);">Select an issue to auto-diagnose, or leave blank and hit "Run Full Diagnostic" to check everything.</small>
-    <div style="margin-top: 1rem;">
-      <button type="button" id="btn-scan"
-        hx-post="/diagnose/scan"
-        hx-include="#diagnose-form"
-        hx-target="#discrepancy-results"
-        hx-indicator="#scan-spinner">
-        Run Full Diagnostic
-      </button>
-      <span id="scan-spinner" class="htmx-indicator" aria-busy="true">Scanning...</span>
-    </div>
-  </article>
-</form>
-
-{# Results areas (swapped by htmx) #}
-<div id="discrepancy-results"></div>
-<div id="diagnostic-results"></div>
-
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='js/diagnose.js') }}"></script>
 <script>
-function toggleUpload() {
-  var area = document.getElementById('upload-area');
-  area.style.display = area.style.display === 'none' ? 'block' : 'none';
-}
-
-// After config loads successfully, show issue selector and store raw_text
-document.body.addEventListener('htmx:afterRequest', function(evt) {
-  if (evt.detail.target && evt.detail.target.id === 'config-status') {
-    try {
-      var resp = JSON.parse(evt.detail.xhr.responseText);
-      if (resp.raw_text) {
-        document.getElementById('raw-text-input').value = resp.raw_text;
-        document.getElementById('raw-text-hidden').value = resp.raw_text;
-        document.getElementById('config-loaded').value = '1';
-
-        // Show config status
-        var statusHtml = '<div style="border-left: 4px solid #2ecc40; padding: 0.5rem 0.75rem;">' +
-          '<strong style="color: #2ecc40;">Config loaded</strong> — ' +
-          resp.firmware + ' ' + resp.firmware_version;
-        if (resp.board_name) statusHtml += ' on ' + resp.board_name;
-        statusHtml += '</div>';
-        statusHtml += '<details style="margin-top: 0.75rem;">' +
-          '<summary style="cursor: pointer; color: var(--pico-primary);">Show raw config dump</summary>' +
-          '<pre style="max-height: 400px; overflow: auto; font-size: 0.8em; margin-top: 0.5rem;">' +
-          resp.raw_text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;") +
-          '</pre></details>';
-        evt.detail.target.innerHTML = statusHtml;
-
-        // Reveal the issue selector
-        document.getElementById('issue-section').style.display = '';
-      } else if (resp.error) {
-        evt.detail.target.innerHTML = '<div style="border-left: 4px solid #ff4136; padding: 0.5rem 0.75rem;">' +
-          '<strong style="color: #ff4136;">Error:</strong> ' + resp.error + '</div>';
-      }
-    } catch(e) {}
-  }
-});
-
-// Auto-run diagnostic when an issue is selected from the dropdown
-document.getElementById('issue-select').addEventListener('change', function() {
-  if (this.value && document.getElementById('config-loaded').value === '1') {
-    document.getElementById('btn-scan').click();
-  }
-});
-
-// Handle file upload: read file into textarea
-document.getElementById('diff-file-input').addEventListener('change', function(e) {
-  var file = e.target.files[0];
-  if (file) {
-    var reader = new FileReader();
-    reader.onload = function(ev) {
-      document.getElementById('raw-text-input').value = ev.target.result;
-    };
-    reader.readAsText(file);
+// Initialize on load — handle pre-selected drone
+document.addEventListener('DOMContentLoaded', function() {
+  var sel = document.getElementById('drone-select');
+  if (sel.value) {
+    document.getElementById('btn-next-1').disabled = false;
+    // Load drone preview
+    fetch('/diagnose/drone-info/' + sel.value)
+      .then(function(r) { return r.text(); })
+      .then(function(html) {
+        document.getElementById('drone-preview').innerHTML = html;
+      });
   }
 });
 </script>

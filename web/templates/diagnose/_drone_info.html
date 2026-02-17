@@ -1,0 +1,21 @@
+<div class="drone-info-card">
+  <div class="drone-info-header">
+    <strong>{{ drone.name }}</strong>
+    {% if drone.nickname %}<span class="drone-nickname">({{ drone.nickname }})</span>{% endif %}
+    <span class="badge badge-{{ drone.status }}">{{ drone.status }}</span>
+  </div>
+  <div class="drone-info-details">
+    <span class="drone-info-item">
+      <span class="drone-info-label">Class</span>
+      {{ drone.drone_class }}
+    </span>
+    <span class="drone-info-item">
+      <span class="drone-info-label">Components</span>
+      {{ comp_count }}
+    </span>
+    <span class="drone-info-item">
+      <span class="drone-info-label">Weight</span>
+      {{ '%.0f' | format(drone.all_up_weight_g) }}g
+    </span>
+  </div>
+</div>

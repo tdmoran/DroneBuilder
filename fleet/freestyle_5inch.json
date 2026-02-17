@@ -1,0 +1,16 @@
+{
+  "name": "5-Inch Freestyle Build",
+  "drone_class": "5inch_freestyle",
+  "status": "active",
+  "nickname": "Freestyle Ripper",
+  "notes": "Standard 5-inch freestyle quad with 2306 motors on 6S. Walksnail Avatar digital VTX for HD recording and low-latency feed.",
+  "tags": ["freestyle", "5inch", "6S", "digital"],
+  "motor": "motor_tmotor_velox_v2_2306_1950kv",
+  "esc": "esc_speedybee_bls_50a_4in1",
+  "fc": "fc_speedybee_f405_v4",
+  "frame": "frame_tbs_source_one_v5",
+  "propeller": "prop_gemfan_51466_hurricane",
+  "battery": "battery_cnhl_ministar_1300_6s_100c",
+  "vtx": "vtx_walksnail_avatar_hd_v2",
+  "receiver": "rx_radiomaster_rp2_elrs_2_4ghz"
+}

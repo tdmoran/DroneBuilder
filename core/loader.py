@@ -29,6 +29,8 @@ _FILE_TO_TYPE = {
     "receivers.json": "receiver",
     "servos.json": "servo",
     "airframes.json": "airframe",
+    "gps.json": "gps",
+    "cameras.json": "camera",
 }
 
 

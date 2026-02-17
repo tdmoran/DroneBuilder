@@ -251,5 +251,47 @@
     "price_usd": 3.99,
     "category": "7inch",
     "units": "Set of 4 (2CW + 2CCW)"
+  },
+  {
+    "id": "prop_gemfan_hurricane_4023",
+    "manufacturer": "Gemfan",
+    "model": "Hurricane 4023 2-Blade",
+    "specs": {
+      "diameter_inches": 4.0,
+      "pitch_inches": 2.3,
+      "blades": 2,
+      "material": "Polycarbonate",
+      "shaft_diameter_mm": 1.5,
+      "hub_type": "Press-fit 1.5mm / T-Mount adapter",
+      "color_options": ["Clear", "Black", "Blue"],
+      "thrust_class": "Medium",
+      "efficiency_class": "Very High",
+      "noise_class": "Low"
+    },
+    "weight_g": 2.2,
+    "price_usd": 2.49,
+    "category": "4inch",
+    "units": "Set of 4 (2CW + 2CCW)"
+  },
+  {
+    "id": "prop_hqprop_4x2_5x3",
+    "manufacturer": "HQProp",
+    "model": "4x2.5x3",
+    "specs": {
+      "diameter_inches": 4.0,
+      "pitch_inches": 2.5,
+      "blades": 3,
+      "material": "Polycarbonate",
+      "shaft_diameter_mm": 1.5,
+      "hub_type": "Press-fit 1.5mm / T-Mount adapter",
+      "color_options": ["Clear", "Black", "Light Blue"],
+      "thrust_class": "Medium",
+      "efficiency_class": "High",
+      "noise_class": "Low-Medium"
+    },
+    "weight_g": 2.5,
+    "price_usd": 2.79,
+    "category": "4inch",
+    "units": "Set of 4 (2CW + 2CCW)"
   }
 ]

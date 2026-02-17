@@ -302,5 +302,30 @@
     "weight_g": 128,
     "price_usd": 74.99,
     "category": "5inch"
+  },
+  {
+    "id": "frame_flywoo_explorer_lr_4",
+    "manufacturer": "Flywoo",
+    "model": "Explorer LR 4\" V2",
+    "specs": {
+      "size_inches": 4,
+      "wheelbase_mm": 186,
+      "layout": "True-X",
+      "arm_thickness_mm": 3.5,
+      "material": "3K Carbon Fiber",
+      "fc_mounting_pattern_mm": "20x20",
+      "secondary_mounting_mm": "none",
+      "prop_size_max_inches": 4.1,
+      "top_plate_thickness_mm": 1.5,
+      "bottom_plate_thickness_mm": 2,
+      "camera_mount_angle_deg": "0-40",
+      "camera_width_mm": 19,
+      "standoff_height_mm": 22,
+      "hd_compatible": true,
+      "strap_slot": true
+    },
+    "weight_g": 52,
+    "price_usd": 29.99,
+    "category": "4inch"
   }
 ]

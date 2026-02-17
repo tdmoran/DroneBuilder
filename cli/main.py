@@ -26,7 +26,7 @@ from engines.optimizer import optimize, suggest_quick, OptimizationRequest
 # Helpers
 # ---------------------------------------------------------------------------
 
-VALID_TYPES = ["motor", "esc", "fc", "frame", "propeller", "battery", "vtx", "receiver", "servo", "airframe"]
+VALID_TYPES = ["motor", "esc", "fc", "frame", "propeller", "battery", "vtx", "receiver", "servo", "airframe", "gps", "camera"]
 
 
 def _truncate(text: str, width: int) -> str:
@@ -382,6 +382,10 @@ def main():
     # Register fleet commands
     from cli.fleet import fleet_group
     cli.add_command(fleet_group)
+
+    # Register diagnose commands
+    from cli.diagnose import diagnose
+    cli.add_command(diagnose)
 
     cli()
 

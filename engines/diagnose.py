@@ -19,6 +19,102 @@ from fc_serial.models import FCConfig
 
 
 # ---------------------------------------------------------------------------
+# Confidence scoring
+# ---------------------------------------------------------------------------
+
+# Check IDs for quick health check mode
+_QUICK_DISC_IDS = {"disc_001", "disc_002", "disc_003", "disc_004"}
+_QUICK_FW_IDS = {"fw_001", "fw_004", "fw_005", "fw_010", "fw_011"}
+_QUICK_ELEC_IDS = {"elec_001", "elec_002", "elec_003"}
+
+
+def compute_confidence(
+    item: ValidationResult | Discrepancy,
+) -> float:
+    """Compute a confidence score (0.0-1.0) for a diagnostic finding.
+
+    Confidence reflects how certain we are that this finding is a real issue:
+    - CRITICAL discrepancy checks (direct config vs fleet comparison) = 0.95
+    - CRITICAL firmware validation (config vs component specs) = 0.90
+    - WARNING findings from compatibility rules = 0.80
+    - INFO findings = 0.70
+    - Findings where a spec field was missing or estimated = 0.50
+    """
+    # Check for missing/estimated data in details
+    if isinstance(item, ValidationResult):
+        if item.details.get("skipped"):
+            return 0.0
+        if item.details.get("estimated") or item.details.get("missing_spec"):
+            return 0.50
+
+    # Determine source type from ID
+    if isinstance(item, Discrepancy):
+        check_id = item.id
+        is_discrepancy = True
+    else:
+        check_id = item.constraint_id
+        is_discrepancy = False
+
+    severity = item.severity
+
+    if is_discrepancy:
+        # Discrepancy checks compare config directly against fleet — high confidence
+        if severity == Severity.CRITICAL:
+            return 0.95
+        if severity == Severity.WARNING:
+            return 0.85
+        return 0.70
+
+    # ValidationResult — check source by ID prefix
+    if check_id.startswith("fw_"):
+        # Firmware validation — config vs component specs
+        if severity == Severity.CRITICAL:
+            return 0.90
+        if severity == Severity.WARNING:
+            return 0.80
+        return 0.70
+    elif check_id.startswith("elec_"):
+        # Electrical compatibility — YAML constraints
+        if severity == Severity.CRITICAL:
+            return 0.90
+        if severity == Severity.WARNING:
+            return 0.80
+        return 0.70
+    else:
+        # Other compatibility rules (mechanical, protocol, weight)
+        if severity == Severity.CRITICAL:
+            return 0.85
+        if severity == Severity.WARNING:
+            return 0.80
+        return 0.70
+
+
+def assign_confidence_scores(
+    report: "DiagnosticReport",
+) -> dict[str, float]:
+    """Compute confidence scores for all findings in a diagnostic report.
+
+    Returns a dict mapping check_id to confidence score.
+    """
+    scores: dict[str, float] = {}
+
+    for d in report.discrepancies:
+        scores[d.id] = compute_confidence(d)
+
+    if report.compatibility_report:
+        for r in report.compatibility_report.results:
+            if not r.passed:
+                scores[r.constraint_id] = compute_confidence(r)
+
+    if report.firmware_report:
+        for r in report.firmware_report.results:
+            if not r.passed:
+                scores[r.constraint_id] = compute_confidence(r)
+
+    return scores
+
+
+# ---------------------------------------------------------------------------
 # DiagnosticReport
 # ---------------------------------------------------------------------------
 
@@ -34,6 +130,8 @@ class DiagnosticReport:
     firmware_report: ValidationReport | None = None
     symptoms: list[str] = field(default_factory=list)
     config_changes: list[str] | None = None
+    confidence_scores: dict[str, float] = field(default_factory=dict)
+    is_quick_check: bool = False
 
     @property
     def has_critical_issues(self) -> bool:
@@ -90,6 +188,15 @@ class DiagnosticReport:
             all_results, self.discrepancies, self.symptoms
         )
         return other
+
+    def get_confidence(self, check_id: str) -> float | None:
+        """Get the confidence score for a specific check ID, or None if not computed."""
+        return self.confidence_scores.get(check_id)
+
+    @property
+    def safe_to_fly(self) -> bool:
+        """Quick assessment: True if no critical issues were found."""
+        return not self.has_critical_issues
 
 
 # ---------------------------------------------------------------------------
@@ -172,6 +279,7 @@ def run_diagnostics(
     3. Run firmware cross-validation (fw_001..fw_020)
     4. Optionally diff against a previous config
     5. Prioritize results based on reported symptoms
+    6. Compute confidence scores for all findings
     """
     fc_info = f"{config.firmware} {config.firmware_version}"
     if config.board_name:
@@ -191,7 +299,7 @@ def run_diagnostics(
     if previous_config is not None:
         config_changes = diff_configs(previous_config, config)
 
-    return DiagnosticReport(
+    report = DiagnosticReport(
         build_name=build.name,
         fc_info=fc_info,
         discrepancies=discrepancies,
@@ -200,3 +308,70 @@ def run_diagnostics(
         symptoms=symptoms or [],
         config_changes=config_changes,
     )
+
+    # 5. Compute confidence scores
+    report.confidence_scores = assign_confidence_scores(report)
+
+    return report
+
+
+def run_quick_health_check(
+    build: Build,
+    fc_config: FCConfig | None = None,
+) -> DiagnosticReport:
+    """Run only the most critical checks for a quick "safe to fly" assessment.
+
+    Checks a subset of the full diagnostic pipeline:
+    - CRITICAL discrepancy checks: disc_001 through disc_004
+    - Key firmware checks: fw_001 (motor protocol), fw_004 (RX protocol),
+      fw_005 (RX UART), fw_010/011 (battery voltage)
+    - Key electrical checks: elec_001/002 (battery vs ESC), elec_003 (ESC current)
+
+    If fc_config is None, only compatibility checks are run.
+
+    Returns a simplified DiagnosticReport with is_quick_check=True.
+    """
+    fc_info = ""
+    discrepancies: list[Discrepancy] = []
+    firmware_report: ValidationReport | None = None
+
+    if fc_config is not None:
+        fc_info = f"{fc_config.firmware} {fc_config.firmware_version}"
+        if fc_config.board_name:
+            fc_info += f" on {fc_config.board_name}"
+
+        # Run all discrepancy checks, then filter to critical ones
+        all_discs = detect_discrepancies(fc_config, build)
+        discrepancies = [d for d in all_discs if d.id in _QUICK_DISC_IDS]
+
+        # Run all firmware checks, then filter to key ones
+        full_fw_report = validate_firmware_config(fc_config, build)
+        filtered_fw_results = [
+            r for r in full_fw_report.results
+            if r.constraint_id in _QUICK_FW_IDS
+        ]
+        firmware_report = ValidationReport(build_name=build.name)
+        firmware_report.results = filtered_fw_results
+
+    # Run compatibility checks, then filter to key electrical ones
+    full_compat_report = validate_build(build)
+    filtered_compat_results = [
+        r for r in full_compat_report.results
+        if r.constraint_id in _QUICK_ELEC_IDS
+    ]
+    compatibility_report = ValidationReport(build_name=build.name)
+    compatibility_report.results = filtered_compat_results
+
+    report = DiagnosticReport(
+        build_name=build.name,
+        fc_info=fc_info,
+        discrepancies=discrepancies,
+        compatibility_report=compatibility_report,
+        firmware_report=firmware_report,
+        is_quick_check=True,
+    )
+
+    # Compute confidence scores
+    report.confidence_scores = assign_confidence_scores(report)
+
+    return report

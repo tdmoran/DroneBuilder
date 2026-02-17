@@ -78,6 +78,7 @@ CLASS_TO_LAYOUT: dict[str, list[ComponentSlot]] = {
     "whoop": QUAD_LAYOUT,
     "7inch_lr": QUAD_LAYOUT,
     "sub250": QUAD_LAYOUT,
+    "4inch": QUAD_LAYOUT,
     "5inch": QUAD_LAYOUT,
     # Fixed-wing classes
     "flying_wing": FLYING_WING_LAYOUT,
