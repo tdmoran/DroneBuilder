@@ -17,8 +17,9 @@ from pathlib import Path
 import click
 
 from core.config_store import list_configs, load_config, save_config
-from core.fleet import load_fleet, load_fleet_drone, name_to_filename, FLEET_DIR
+from core.fleet import load_fleet, load_fleet_drone, name_to_filename, save_fleet_drone, FLEET_DIR
 from core.models import Build, Discrepancy, Severity, ValidationResult
+from engines.fc_importer import suggest_fleet_drone_from_config
 from engines.compatibility import ValidationReport
 from engines.diagnose import DiagnosticReport, run_diagnostics, run_quick_health_check
 from engines.symptom_map import (
@@ -149,6 +150,86 @@ def _auto_match_drone(config) -> tuple[Build, dict, str] | None:
                             return drone, data, slug
 
     return None
+
+
+def _offer_create_drone_from_config(config) -> tuple[Build, dict, str] | None:
+    """Offer to create a new fleet drone from the FC config.
+
+    Returns (Build, raw_data_dict, drone_slug) if created, None if declined.
+    """
+    click.echo()
+    click.echo(click.style("  No matching fleet drone found.", fg="yellow"))
+
+    if not click.confirm("  Create a new drone from this FC config?", default=True):
+        return None
+
+    suggestion = suggest_fleet_drone_from_config(config)
+    det = suggestion["_detection"]
+
+    # Show detection results
+    click.echo()
+    click.echo(click.style("  Detected from FC config:", bold=True))
+
+    fc_display = det["board_name"] or "Unknown"
+    if det["fc_match"]:
+        fc_display += f" → {det['fc_match']['model']}"
+    click.echo(f"    FC Board:     {fc_display}")
+
+    rx_display = det["serialrx_provider"] or "None"
+    if det["rx_match"]:
+        rx_display += f" → {det['rx_match']['model']}"
+    click.echo(f"    RX Protocol:  {rx_display}")
+
+    esc_display = det["motor_protocol"] or "None"
+    if det["esc_match"]:
+        esc_display += f" → {det['esc_match']['model']}"
+    click.echo(f"    ESC Protocol: {esc_display}")
+
+    vtx_display = "None"
+    if det["vtx_type"] != "none":
+        vtx_display = f"{det['vtx_type'].title()} ({det['vtx_detail']})"
+        if det["vtx_match"]:
+            vtx_display += f" → {det['vtx_match']['model']}"
+    click.echo(f"    VTX Type:     {vtx_display}")
+
+    click.echo(f"    Firmware:     {det['firmware']}")
+    click.echo()
+
+    # Prompt for name
+    default_name = suggestion["name"]
+    drone_name = click.prompt("  Drone name", default=default_name)
+    suggestion["name"] = drone_name
+
+    # Prompt for drone class
+    drone_class = click.prompt(
+        "  Drone class",
+        default="5inch_freestyle",
+        type=click.Choice([
+            "5inch_freestyle", "sub250", "4inch", "3inch",
+            "cinewhoop", "racing", "long_range", "flying_wing",
+        ], case_sensitive=False),
+    )
+    suggestion["drone_class"] = drone_class
+
+    # Remove detection metadata before saving
+    matched_slots = suggestion.pop("_matched_slots", 0)
+    suggestion.pop("_detection", None)
+
+    # Save
+    filename = name_to_filename(drone_name)
+    filepath = save_fleet_drone(suggestion, filename)
+
+    click.echo()
+    click.echo(click.style(f"  Created fleet drone: {filepath.name}", fg="green", bold=True))
+    click.echo(click.style(
+        f"  Matched {matched_slots} of 8 component slots — edit fleet record to fill remaining.",
+        dim=True,
+    ))
+    click.echo()
+
+    # Load back as Build
+    drone = load_fleet_drone(suggestion, source_file=str(filepath))
+    return drone, suggestion, filename
 
 
 # ---------------------------------------------------------------------------
@@ -617,7 +698,12 @@ def scan_cmd(
             if not click.confirm("  Use this drone?", default=True):
                 drone, drone_data, drone_slug = _prompt_drone_selection()
         else:
-            drone, drone_data, drone_slug = _prompt_drone_selection()
+            # Offer to create from config, fall back to manual selection
+            created = _offer_create_drone_from_config(config)
+            if created:
+                drone, drone_data, drone_slug = created
+            else:
+                drone, drone_data, drone_slug = _prompt_drone_selection()
 
     # Step 3: Save config backup
     if save and drone_slug:

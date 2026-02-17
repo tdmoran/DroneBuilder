@@ -9,9 +9,10 @@ import threading
 from flask import Blueprint, abort, jsonify, render_template, request
 
 from core.config_store import list_configs, load_config, save_config
-from core.fleet import FLEET_DIR, load_fleet, load_fleet_drone, name_to_filename
+from core.fleet import FLEET_DIR, load_fleet, load_fleet_drone, name_to_filename, save_fleet_drone
 from engines.diagnose import run_diagnostics
 from engines.discrepancy import detect_discrepancies
+from engines.fc_importer import suggest_fleet_drone_from_config
 from engines.symptom_map import (
     FIX_SUGGESTIONS,
     SYMPTOMS,
@@ -539,7 +540,66 @@ def update_fleet(filename: str):
     for key, value in updates.items():
         fleet_data[key] = value
 
-    from core.fleet import save_fleet_drone
     save_fleet_drone(fleet_data, filename)
 
     return jsonify({"updated": True, "filename": filename})
+
+
+# ---------------------------------------------------------------------------
+# Suggest fleet drone from FC config
+# ---------------------------------------------------------------------------
+
+
+@diagnose_bp.route("/suggest-drone", methods=["POST"])
+def suggest_drone():
+    """Parse config and return component match suggestions as JSON."""
+    data = request.get_json(silent=True) or {}
+    raw_text = data.get("raw_text", "")
+
+    if not raw_text.strip():
+        return jsonify({"error": "No config text provided"}), 400
+
+    config = parse_diff_all(raw_text)
+    suggestion = suggest_fleet_drone_from_config(config)
+
+    return jsonify(suggestion)
+
+
+# ---------------------------------------------------------------------------
+# Create fleet drone from FC config
+# ---------------------------------------------------------------------------
+
+
+@diagnose_bp.route("/create-drone-from-config", methods=["POST"])
+def create_drone_from_config():
+    """Create a fleet drone from FC config suggestions. Returns JSON with filename."""
+    data = request.get_json(silent=True) or {}
+    raw_text = data.get("raw_text", "")
+    name_override = data.get("name", "").strip()
+    class_override = data.get("drone_class", "").strip()
+
+    if not raw_text.strip():
+        return jsonify({"error": "No config text provided"}), 400
+
+    config = parse_diff_all(raw_text)
+    suggestion = suggest_fleet_drone_from_config(config)
+
+    # Apply overrides
+    if name_override:
+        suggestion["name"] = name_override
+    if class_override:
+        suggestion["drone_class"] = class_override
+
+    # Remove display-only metadata before saving
+    suggestion.pop("_detection", None)
+    matched_slots = suggestion.pop("_matched_slots", 0)
+
+    filename = name_to_filename(suggestion["name"])
+    save_fleet_drone(suggestion, filename)
+
+    return jsonify({
+        "created": True,
+        "filename": filename,
+        "name": suggestion["name"],
+        "matched_slots": matched_slots,
+    })

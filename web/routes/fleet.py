@@ -22,6 +22,9 @@ fleet_bp = Blueprint("fleet", __name__)
 
 VALID_STATUSES = ["active", "building", "retired", "crashed", "sold"]
 
+# Component slots that may appear as query params in new-from-config
+_COMPONENT_KEYS = {"fc", "esc", "receiver", "vtx", "motor", "frame", "propeller", "battery", "camera", "gps"}
+
 
 def _load_drone_by_filename(filename: str):
     """Load a fleet drone by its JSON filename (without extension).
@@ -90,6 +93,40 @@ def fleet_detail(filename: str):
 # -----------------------------------------------------------------------
 # Add
 # -----------------------------------------------------------------------
+
+@fleet_bp.route("/new-from-config")
+def fleet_new_from_config():
+    """Show add drone form pre-populated with FC config detection results."""
+    data: dict = {}
+    for key in ("name", "drone_class", "status", "notes", "nickname"):
+        val = request.args.get(key, "")
+        if val:
+            data[key] = val
+    for key in _COMPONENT_KEYS:
+        val = request.args.get(key, "")
+        if val:
+            data[key] = val
+
+    # Tags come as comma-separated
+    tags_raw = request.args.get("tags", "")
+    if tags_raw:
+        data["tags"] = [t.strip() for t in tags_raw.split(",") if t.strip()]
+
+    if not data.get("status"):
+        data["status"] = "building"
+
+    all_components = load_components()
+    drone_classes = sorted(CLASS_TO_LAYOUT.keys())
+    return render_template(
+        "fleet/form.html",
+        action="new",
+        drone_classes=drone_classes,
+        all_components=all_components,
+        statuses=VALID_STATUSES,
+        drone=None,
+        data=data,
+    )
+
 
 @fleet_bp.route("/new", methods=["GET"])
 def fleet_new():

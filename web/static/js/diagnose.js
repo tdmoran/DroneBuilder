@@ -10,6 +10,7 @@ var selectedSymptoms = [];  // [{id: "cant_arm", label: "Will not arm"}, ...]
 var diagSocket = null;
 var scanResults = [];       // collected check results for export
 var scanSummary = null;
+var createFromConfig = false;  // true when "Create new drone" is selected
 
 // ---------------------------------------------------------------------------
 // Step wizard navigation
@@ -19,6 +20,8 @@ function goToStep(step) {
   // Validate transitions
   if (step === 2 && !document.getElementById('drone-select').value) return;
   if (step === 3 && document.getElementById('config-loaded').value !== '1') return;
+  // When creating from config, drone must be created before proceeding to step 3
+  if (step === 3 && createFromConfig) return;
 
   // Hide all panels
   for (var i = 1; i <= 4; i++) {
@@ -62,15 +65,34 @@ document.addEventListener('DOMContentLoaded', function() {
     sel.addEventListener('change', function() {
       var btn = document.getElementById('btn-next-1');
       btn.disabled = !this.value;
+      var previewEl = document.getElementById('drone-preview');
+      var configPreviewEl = document.getElementById('config-drone-preview');
 
-      if (this.value) {
+      if (this.value === '__new_from_config__') {
+        createFromConfig = true;
+        previewEl.innerHTML = '';
+        configPreviewEl.style.display = '';
+        configPreviewEl.innerHTML =
+          '<div class="diag-config-status">' +
+          '<div class="diag-config-status-header">' +
+          '<strong>New Drone from FC Config</strong>' +
+          '</div>' +
+          '<p>Load your FC config in the next step. Components will be auto-detected and a fleet record created.</p>' +
+          '</div>';
+      } else if (this.value) {
+        createFromConfig = false;
+        configPreviewEl.style.display = 'none';
+        configPreviewEl.innerHTML = '';
         fetch('/diagnose/drone-info/' + this.value)
           .then(function(r) { return r.text(); })
           .then(function(html) {
-            document.getElementById('drone-preview').innerHTML = html;
+            previewEl.innerHTML = html;
           });
       } else {
-        document.getElementById('drone-preview').innerHTML = '';
+        createFromConfig = false;
+        previewEl.innerHTML = '';
+        configPreviewEl.style.display = 'none';
+        configPreviewEl.innerHTML = '';
       }
     });
   }
@@ -141,6 +163,11 @@ document.body.addEventListener('htmx:afterRequest', function(evt) {
           '</details></div>';
 
         evt.detail.target.innerHTML = html;
+
+        // If creating from config, fetch suggestions
+        if (createFromConfig) {
+          fetchConfigSuggestion(resp.raw_text);
+        }
       } else if (resp.error) {
         evt.detail.target.innerHTML =
           '<div class="diag-config-error">' +
@@ -213,6 +240,155 @@ function renderSelectedSymptoms() {
   });
 
   container.innerHTML = html;
+}
+
+// ---------------------------------------------------------------------------
+// Create drone from FC config
+// ---------------------------------------------------------------------------
+
+function fetchConfigSuggestion(rawText) {
+  var previewEl = document.getElementById('config-drone-preview');
+  previewEl.style.display = '';
+  previewEl.innerHTML = '<div aria-busy="true" style="padding:1rem;">Detecting components...</div>';
+
+  fetch('/diagnose/suggest-drone', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ raw_text: rawText }),
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.error) {
+        previewEl.innerHTML =
+          '<div class="diag-config-error"><strong>Error:</strong> ' +
+          escapeHtml(data.error) + '</div>';
+        return;
+      }
+
+      var det = data._detection || {};
+      var html = '<div class="diag-config-status">';
+      html += '<div class="diag-config-status-header"><strong>Detected Components</strong></div>';
+      html += '<div class="diag-config-status-details">';
+
+      // FC
+      var fcStr = det.board_name || 'Unknown';
+      if (det.fc_match) fcStr += ' &rarr; ' + escapeHtml(det.fc_match.model);
+      html += '<div class="diag-config-detail"><span class="diag-config-detail-label">FC Board</span>' + fcStr + '</div>';
+
+      // RX
+      var rxStr = det.serialrx_provider || 'None';
+      if (det.rx_match) rxStr += ' &rarr; ' + escapeHtml(det.rx_match.model);
+      html += '<div class="diag-config-detail"><span class="diag-config-detail-label">RX Protocol</span>' + rxStr + '</div>';
+
+      // ESC
+      var escStr = det.motor_protocol || 'None';
+      if (det.esc_match) escStr += ' &rarr; ' + escapeHtml(det.esc_match.model);
+      html += '<div class="diag-config-detail"><span class="diag-config-detail-label">ESC Protocol</span>' + escStr + '</div>';
+
+      // VTX
+      var vtxStr = 'None';
+      if (det.vtx_type && det.vtx_type !== 'none') {
+        vtxStr = det.vtx_type.charAt(0).toUpperCase() + det.vtx_type.slice(1);
+        if (det.vtx_detail) vtxStr += ' (' + escapeHtml(det.vtx_detail) + ')';
+        if (det.vtx_match) vtxStr += ' &rarr; ' + escapeHtml(det.vtx_match.model);
+      }
+      html += '<div class="diag-config-detail"><span class="diag-config-detail-label">VTX Type</span>' + vtxStr + '</div>';
+
+      // Firmware
+      html += '<div class="diag-config-detail"><span class="diag-config-detail-label">Firmware</span>' + escapeHtml(det.firmware || '') + '</div>';
+
+      html += '</div>';
+
+      // Name input and create button
+      html += '<div style="margin-top:1rem;">';
+      html += '<label for="new-drone-name" style="font-weight:600;">Drone name:</label>';
+      html += '<input type="text" id="new-drone-name" value="' + escapeAttr(data.name || '') + '" style="margin:.5rem 0;">';
+      html += '<label for="new-drone-class" style="font-weight:600;">Drone class:</label>';
+      html += '<select id="new-drone-class" style="margin:.5rem 0;">';
+      var classes = ["5inch_freestyle","sub250","4inch","3inch","cinewhoop","racing","long_range","flying_wing"];
+      classes.forEach(function(c) {
+        html += '<option value="' + c + '"' + (c === '5inch_freestyle' ? ' selected' : '') + '>' + c + '</option>';
+      });
+      html += '</select>';
+      html += '<button type="button" onclick="createDroneFromConfig()" style="margin-top:.5rem;">Create Drone &amp; Continue</button>';
+      html += '</div>';
+
+      html += '</div>';
+      previewEl.innerHTML = html;
+
+      // Store suggestion data for later
+      previewEl.dataset.rawText = rawText;
+    })
+    .catch(function(err) {
+      previewEl.innerHTML =
+        '<div class="diag-config-error">Failed to detect components: ' + err + '</div>';
+    });
+}
+
+function createDroneFromConfig() {
+  var previewEl = document.getElementById('config-drone-preview');
+  var rawText = previewEl.dataset.rawText || document.getElementById('raw-text-hidden').value;
+  var droneName = document.getElementById('new-drone-name').value.trim();
+  var droneClass = document.getElementById('new-drone-class').value;
+
+  if (!droneName) {
+    alert('Please enter a drone name.');
+    return;
+  }
+
+  var createBtn = previewEl.querySelector('button');
+  if (createBtn) {
+    createBtn.disabled = true;
+    createBtn.textContent = 'Creating...';
+  }
+
+  fetch('/diagnose/create-drone-from-config', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      raw_text: rawText,
+      name: droneName,
+      drone_class: droneClass,
+    }),
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.error) {
+        previewEl.innerHTML +=
+          '<div class="diag-config-error"><strong>Error:</strong> ' +
+          escapeHtml(data.error) + '</div>';
+        return;
+      }
+
+      // Update the drone select with the new drone
+      var sel = document.getElementById('drone-select');
+      var newOpt = document.createElement('option');
+      newOpt.value = data.filename;
+      newOpt.textContent = data.name;
+      newOpt.selected = true;
+      // Insert before the "Create new" option
+      var createOpt = sel.querySelector('option[value="__new_from_config__"]');
+      sel.insertBefore(newOpt, createOpt);
+
+      createFromConfig = false;
+
+      previewEl.innerHTML =
+        '<div class="diag-config-status">' +
+        '<div class="diag-config-status-header">' +
+        '<span class="diag-config-check">&#10003;</span>' +
+        '<strong>Fleet drone created: ' + escapeHtml(data.name) + '</strong>' +
+        '</div>' +
+        '<p>Matched ' + data.matched_slots + ' of 8 component slots. ' +
+        '<a href="/fleet/' + encodeURIComponent(data.filename) + '/edit">Edit fleet record</a> to fill remaining.</p>' +
+        '</div>';
+
+      // Enable the next button
+      document.getElementById('btn-next-2').disabled = false;
+    })
+    .catch(function(err) {
+      previewEl.innerHTML +=
+        '<div class="diag-config-error">Failed to create drone: ' + err + '</div>';
+    });
 }
 
 // ---------------------------------------------------------------------------
@@ -497,6 +673,7 @@ function resetDiagnostic() {
   scanResults = [];
   scanSummary = null;
   selectedSymptoms = [];
+  createFromConfig = false;
   renderSelectedSymptoms();
 
   document.getElementById('config-loaded').value = '';
@@ -507,6 +684,8 @@ function resetDiagnostic() {
   document.getElementById('symptom-text-input').value = '';
   document.getElementById('symptom-suggestions').innerHTML = '';
   document.getElementById('drone-preview').innerHTML = '';
+  document.getElementById('config-drone-preview').style.display = 'none';
+  document.getElementById('config-drone-preview').innerHTML = '';
   document.getElementById('diag-live-checks').innerHTML = '';
   document.getElementById('diag-summary').innerHTML = '';
   document.getElementById('diag-summary').style.display = 'none';

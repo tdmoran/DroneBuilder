@@ -37,10 +37,7 @@
     {# ================================================================ #}
     <article class="diag-panel" id="step-1-panel">
       <header><strong>1. Select Drone</strong></header>
-      <select name="drone_filename" id="drone-select" required
-        hx-get="/diagnose/drone-info/{value}"
-        hx-trigger="change"
-        hx-target="#drone-preview">
+      <select name="drone_filename" id="drone-select" required>
         <option value="">-- Select a fleet drone --</option>
         {% for drone in fleet %}
         <option value="{{ drone.source_file.split('/')[-1].replace('.json', '') }}"
@@ -49,8 +46,10 @@
           — {{ drone.drone_class }}
         </option>
         {% endfor %}
+        <option value="__new_from_config__">+ Create new drone from FC config</option>
       </select>
       <div id="drone-preview"></div>
+      <div id="config-drone-preview" style="display:none;"></div>
       <div class="diag-step-actions">
         <button type="button" class="diag-next-btn" id="btn-next-1" disabled onclick="goToStep(2)">
           Next: Load Config
