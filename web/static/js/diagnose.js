@@ -21,7 +21,7 @@ function goToStep(step) {
   if (step === 2 && !document.getElementById('drone-select').value) return;
   if (step === 3 && document.getElementById('config-loaded').value !== '1') return;
   // When creating from config, drone must be created before proceeding to step 3
-  if (step === 3 && createFromConfig) return;
+  if (step === 3 && document.getElementById('drone-select').value === '__new_from_config__') return;
 
   // Hide all panels
   for (var i = 1; i <= 4; i++) {
@@ -382,8 +382,9 @@ function createDroneFromConfig() {
         '<a href="/fleet/' + encodeURIComponent(data.filename) + '/edit">Edit fleet record</a> to fill remaining.</p>' +
         '</div>';
 
-      // Enable the next button
+      // Advance to step 3 automatically
       document.getElementById('btn-next-2').disabled = false;
+      goToStep(3);
     })
     .catch(function(err) {
       previewEl.innerHTML +=
